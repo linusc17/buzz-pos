@@ -26,6 +26,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import MainNavigation from "@/components/MainNavigation";
 import ConfirmModal from "@/components/ConfirmModal";
 import { toast } from "sonner";
@@ -172,21 +173,13 @@ export default function ProductsPage() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-muted-foreground">Loading...</div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-background">
       <MainNavigation />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground">
+          <h1 className="text-3xl font-heading font-bold text-buzz-brown dark:text-buzz-cream">
             Product Management
           </h1>
           <p className="text-muted-foreground mt-2">
@@ -206,57 +199,88 @@ export default function ProductsPage() {
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {products.map((product) => (
-                    <div
-                      key={product.id}
-                      className="p-4 border border-border rounded-lg"
-                    >
-                      <div className="flex justify-between items-start">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2">
-                            <h3 className="font-semibold text-foreground">
-                              {product.name}
-                            </h3>
-                            <Badge variant="outline">{product.category}</Badge>
-                            <Badge
-                              variant={
-                                product.available ? "default" : "secondary"
-                              }
-                            >
-                              {product.available ? "Available" : "Unavailable"}
-                            </Badge>
+                {loading ? (
+                  <div className="space-y-4">
+                    {Array.from({ length: 4 }).map((_, index) => (
+                      <div
+                        key={index}
+                        className="p-4 border border-border rounded-lg"
+                      >
+                        <div className="flex justify-between items-start">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-2">
+                              <Skeleton className="h-5 w-32" />
+                              <Skeleton className="h-5 w-16" />
+                              <Skeleton className="h-5 w-20" />
+                            </div>
+                            <Skeleton className="h-4 w-48 mb-2" />
+                            <Skeleton className="h-6 w-16" />
                           </div>
-                          <p className="text-sm text-muted-foreground mt-1">
-                            {product.description}
-                          </p>
-                          <p className="font-bold text-lg mt-2 text-foreground">
-                            ₱{product.basePrice}
-                          </p>
-                        </div>
-                        <div className="flex gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setEditingProduct(product)}
-                          >
-                            Edit
-                          </Button>
-                          <ConfirmModal
-                            title="Delete Product"
-                            description={`Are you sure you want to delete "${product.name}"? This action cannot be undone.`}
-                            onConfirm={() => handleDeleteProduct(product.id)}
-                            confirmText="Delete Product"
-                          >
-                            <Button variant="outline" size="sm">
-                              Delete
-                            </Button>
-                          </ConfirmModal>
+                          <div className="flex gap-2">
+                            <Skeleton className="h-8 w-8" />
+                            <Skeleton className="h-8 w-8" />
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {products.map((product) => (
+                      <div
+                        key={product.id}
+                        className="p-4 border border-border rounded-lg"
+                      >
+                        <div className="flex justify-between items-start">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                              <h3 className="font-semibold text-foreground">
+                                {product.name}
+                              </h3>
+                              <Badge variant="outline">
+                                {product.category}
+                              </Badge>
+                              <Badge
+                                variant={
+                                  product.available ? "default" : "secondary"
+                                }
+                              >
+                                {product.available
+                                  ? "Available"
+                                  : "Unavailable"}
+                              </Badge>
+                            </div>
+                            <p className="text-sm text-muted-foreground mt-1">
+                              {product.description}
+                            </p>
+                            <p className="font-bold text-lg mt-2 text-foreground">
+                              ₱{product.basePrice}
+                            </p>
+                          </div>
+                          <div className="flex gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setEditingProduct(product)}
+                            >
+                              Edit
+                            </Button>
+                            <ConfirmModal
+                              title="Delete Product"
+                              description={`Are you sure you want to delete "${product.name}"? This action cannot be undone.`}
+                              onConfirm={() => handleDeleteProduct(product.id)}
+                              confirmText="Delete Product"
+                            >
+                              <Button variant="outline" size="sm">
+                                Delete
+                              </Button>
+                            </ConfirmModal>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -273,54 +297,80 @@ export default function ProductsPage() {
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {addons.map((addon) => (
-                    <div
-                      key={addon.id}
-                      className="p-4 border border-border rounded-lg"
-                    >
-                      <div className="flex justify-between items-start">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2">
-                            <h3 className="font-semibold text-foreground">
-                              {addon.name}
-                            </h3>
-                            <Badge variant="outline">{addon.type}</Badge>
-                            <Badge
-                              variant={
-                                addon.available ? "default" : "secondary"
-                              }
-                            >
-                              {addon.available ? "Available" : "Unavailable"}
-                            </Badge>
+                {loading ? (
+                  <div className="space-y-4">
+                    {Array.from({ length: 3 }).map((_, index) => (
+                      <div
+                        key={index}
+                        className="p-4 border border-border rounded-lg"
+                      >
+                        <div className="flex justify-between items-start">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-2">
+                              <Skeleton className="h-5 w-24" />
+                              <Skeleton className="h-5 w-12" />
+                              <Skeleton className="h-5 w-20" />
+                            </div>
+                            <Skeleton className="h-6 w-16" />
                           </div>
-                          <p className="font-bold text-lg mt-2 text-foreground">
-                            +₱{addon.price}
-                          </p>
-                        </div>
-                        <div className="flex gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setEditingAddon(addon)}
-                          >
-                            Edit
-                          </Button>
-                          <ConfirmModal
-                            title="Delete Add-on"
-                            description={`Are you sure you want to delete "${addon.name}"? This action cannot be undone.`}
-                            onConfirm={() => handleDeleteAddon(addon.id)}
-                            confirmText="Delete Add-on"
-                          >
-                            <Button variant="outline" size="sm">
-                              Delete
-                            </Button>
-                          </ConfirmModal>
+                          <div className="flex gap-2">
+                            <Skeleton className="h-8 w-8" />
+                            <Skeleton className="h-8 w-8" />
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {addons.map((addon) => (
+                      <div
+                        key={addon.id}
+                        className="p-4 border border-border rounded-lg"
+                      >
+                        <div className="flex justify-between items-start">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                              <h3 className="font-semibold text-foreground">
+                                {addon.name}
+                              </h3>
+                              <Badge variant="outline">{addon.type}</Badge>
+                              <Badge
+                                variant={
+                                  addon.available ? "default" : "secondary"
+                                }
+                              >
+                                {addon.available ? "Available" : "Unavailable"}
+                              </Badge>
+                            </div>
+                            <p className="font-bold text-lg mt-2 text-foreground">
+                              +₱{addon.price}
+                            </p>
+                          </div>
+                          <div className="flex gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setEditingAddon(addon)}
+                            >
+                              Edit
+                            </Button>
+                            <ConfirmModal
+                              title="Delete Add-on"
+                              description={`Are you sure you want to delete "${addon.name}"? This action cannot be undone.`}
+                              onConfirm={() => handleDeleteAddon(addon.id)}
+                              confirmText="Delete Add-on"
+                            >
+                              <Button variant="outline" size="sm">
+                                Delete
+                              </Button>
+                            </ConfirmModal>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -389,7 +439,7 @@ function ProductForm({
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
+            <div className="space-y-2">
               <Label htmlFor="name">Product Name *</Label>
               <Input
                 id="name"
@@ -401,7 +451,7 @@ function ProductForm({
               />
             </div>
 
-            <div>
+            <div className="space-y-2">
               <Label htmlFor="basePrice">Base Price *</Label>
               <Input
                 id="basePrice"
@@ -419,7 +469,7 @@ function ProductForm({
               />
             </div>
 
-            <div>
+            <div className="space-y-2">
               <Label htmlFor="category">Category</Label>
               <Select
                 value={formData.category}
@@ -437,7 +487,7 @@ function ProductForm({
               </Select>
             </div>
 
-            <div>
+            <div className="space-y-2">
               <Label htmlFor="description">Description</Label>
               <Input
                 id="description"
@@ -515,7 +565,7 @@ function AddonForm({
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
+            <div className="space-y-2">
               <Label htmlFor="name">Add-on Name *</Label>
               <Input
                 id="name"
@@ -527,7 +577,7 @@ function AddonForm({
               />
             </div>
 
-            <div>
+            <div className="space-y-2">
               <Label htmlFor="price">Price *</Label>
               <Input
                 id="price"
@@ -545,7 +595,7 @@ function AddonForm({
               />
             </div>
 
-            <div>
+            <div className="space-y-2">
               <Label htmlFor="type">Type</Label>
               <Select
                 value={formData.type}

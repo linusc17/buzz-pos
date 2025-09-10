@@ -16,7 +16,6 @@ import { toast } from "sonner";
 
 export default function NewOrderPage() {
   const [, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
   const [cart, setCart] = useState<OrderItem[]>([]);
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
@@ -32,7 +31,6 @@ export default function NewOrderPage() {
       } else {
         router.push("/login");
       }
-      setLoading(false);
     });
 
     return () => unsubscribe();
@@ -108,7 +106,7 @@ export default function NewOrderPage() {
         items: cart,
       };
 
-      const docRef = await addDoc(collection(db, "orders"), orderData);
+      await addDoc(collection(db, "orders"), orderData);
 
       // Reset form
       setCart([]);
@@ -118,7 +116,7 @@ export default function NewOrderPage() {
       setNotes("");
 
       toast.success("Order created successfully!");
-      router.push(`/orders/${docRef.id}`);
+      router.push("/orders");
     } catch (error) {
       console.error("Error creating order:", error);
       toast.error("Error creating order. Please try again.");
@@ -127,21 +125,15 @@ export default function NewOrderPage() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-muted-foreground">Loading...</div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-background">
       <MainNavigation />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground">New Order</h1>
+          <h1 className="text-3xl font-heading font-bold text-buzz-brown dark:text-buzz-cream">
+            New Order
+          </h1>
           <p className="text-muted-foreground mt-2">
             Create a new delivery order for a customer
           </p>
@@ -221,7 +213,7 @@ export default function NewOrderPage() {
                             variant="ghost"
                             size="sm"
                             onClick={() => removeFromCart(index)}
-                            className="text-red-600 hover:text-red-800"
+                            className="text-buzz-burgundy hover:text-buzz-burgundy/80"
                           >
                             Remove
                           </Button>
@@ -246,7 +238,7 @@ export default function NewOrderPage() {
                 <CardTitle>Customer Details</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div>
+                <div className="space-y-2">
                   <Label htmlFor="customerName">Customer Name *</Label>
                   <Input
                     id="customerName"
@@ -257,7 +249,7 @@ export default function NewOrderPage() {
                   />
                 </div>
 
-                <div>
+                <div className="space-y-2">
                   <Label htmlFor="customerPhone">Phone Number *</Label>
                   <Input
                     id="customerPhone"
@@ -268,7 +260,7 @@ export default function NewOrderPage() {
                   />
                 </div>
 
-                <div>
+                <div className="space-y-2">
                   <Label htmlFor="customerAddress">Delivery Address *</Label>
                   <Input
                     id="customerAddress"
@@ -279,7 +271,7 @@ export default function NewOrderPage() {
                   />
                 </div>
 
-                <div>
+                <div className="space-y-2">
                   <Label htmlFor="notes">Special Instructions (Optional)</Label>
                   <Input
                     id="notes"

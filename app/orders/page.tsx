@@ -12,7 +12,7 @@ import {
   deleteDoc,
 } from "firebase/firestore";
 import { getFirebaseDb } from "@/lib/firebase-client";
-import { Order } from "@/types";
+import { Order, Product, Addon } from "@/types";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import MainNavigation from "@/components/MainNavigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -35,6 +35,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import ConfirmModal from "@/components/ConfirmModal";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Edit, Trash2, Eye } from "lucide-react";
 import { toast } from "sonner";
 
@@ -144,14 +145,6 @@ function OrdersContent() {
 
   const statusCounts = getStatusCounts();
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-muted-foreground">Loading...</div>
-      </div>
-    );
-  }
-
   // Pagination logic
   const indexOfLastOrder = currentPage * ordersPerPage;
   const indexOfFirstOrder = indexOfLastOrder - ordersPerPage;
@@ -171,7 +164,9 @@ function OrdersContent() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground">All Orders</h1>
+          <h1 className="text-3xl font-heading font-bold text-buzz-brown dark:text-buzz-cream">
+            All Orders
+          </h1>
           <p className="text-muted-foreground mt-2">
             Manage and track all your coffee orders
           </p>
@@ -182,46 +177,59 @@ function OrdersContent() {
             <CardTitle>Order Status Overview</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-6">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-foreground">
-                  {statusCounts.all}
-                </div>
-                <div className="text-sm text-muted-foreground">All Orders</div>
+            {loading ? (
+              <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-6">
+                {Array.from({ length: 6 }).map((_, index) => (
+                  <div key={index} className="text-center">
+                    <Skeleton className="h-8 w-8 mx-auto mb-2" />
+                    <Skeleton className="h-4 w-16 mx-auto" />
+                  </div>
+                ))}
               </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
-                  {statusCounts.pending}
+            ) : (
+              <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-6">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-foreground">
+                    {statusCounts.all}
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    All Orders
+                  </div>
                 </div>
-                <div className="text-sm text-muted-foreground">Pending</div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
+                    {statusCounts.pending}
+                  </div>
+                  <div className="text-sm text-muted-foreground">Pending</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                    {statusCounts.preparing}
+                  </div>
+                  <div className="text-sm text-muted-foreground">Preparing</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+                    {statusCounts.ready}
+                  </div>
+                  <div className="text-sm text-muted-foreground">Ready</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+                    {statusCounts["out-for-delivery"]}
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    Out for Delivery
+                  </div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-muted-foreground">
+                    {statusCounts.delivered}
+                  </div>
+                  <div className="text-sm text-muted-foreground">Delivered</div>
+                </div>
               </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                  {statusCounts.preparing}
-                </div>
-                <div className="text-sm text-muted-foreground">Preparing</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-green-600 dark:text-green-400">
-                  {statusCounts.ready}
-                </div>
-                <div className="text-sm text-muted-foreground">Ready</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
-                  {statusCounts["out-for-delivery"]}
-                </div>
-                <div className="text-sm text-muted-foreground">
-                  Out for Delivery
-                </div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-muted-foreground">
-                  {statusCounts.delivered}
-                </div>
-                <div className="text-sm text-muted-foreground">Delivered</div>
-              </div>
-            </div>
+            )}
 
             <div className="flex items-center gap-4">
               <label className="text-sm font-medium text-foreground">
@@ -252,7 +260,56 @@ function OrdersContent() {
             <CardTitle>Orders</CardTitle>
           </CardHeader>
           <CardContent>
-            {filteredOrders.length === 0 ? (
+            {loading ? (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Order ID</TableHead>
+                    <TableHead>Customer Info</TableHead>
+                    <TableHead>Order Details</TableHead>
+                    <TableHead>Total</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {Array.from({ length: 5 }).map((_, index) => (
+                    <TableRow key={index}>
+                      <TableCell>
+                        <Skeleton className="h-4 w-16" />
+                      </TableCell>
+                      <TableCell>
+                        <div className="space-y-2">
+                          <Skeleton className="h-4 w-24" />
+                          <Skeleton className="h-3 w-20" />
+                          <Skeleton className="h-3 w-32" />
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="space-y-2">
+                          <Skeleton className="h-4 w-16" />
+                          <Skeleton className="h-3 w-28" />
+                          <Skeleton className="h-3 w-24" />
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-16" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-8 w-24" />
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1">
+                          <Skeleton className="h-8 w-8" />
+                          <Skeleton className="h-8 w-8" />
+                          <Skeleton className="h-8 w-8" />
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            ) : filteredOrders.length === 0 ? (
               <div className="text-center py-12">
                 <p className="text-muted-foreground text-lg">
                   {statusFilter === "all"
@@ -709,8 +766,8 @@ function EditOrderModal({
   const [customerAddress, setCustomerAddress] = useState(order.customerAddress);
   const [notes, setNotes] = useState(order.notes || "");
   const [items, setItems] = useState(order.items);
-  const [products, setProducts] = useState<any[]>([]);
-  const [addons, setAddons] = useState<any[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [addons, setAddons] = useState<Addon[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadingData, setLoadingData] = useState(true);
 
@@ -724,16 +781,16 @@ function EditOrderModal({
 
       // Fetch products
       const productsSnapshot = await getDocs(collection(db, "products"));
-      const productsData: any[] = [];
+      const productsData: Product[] = [];
       productsSnapshot.forEach((doc) => {
-        productsData.push({ id: doc.id, ...doc.data() });
+        productsData.push({ id: doc.id, ...doc.data() } as Product);
       });
 
       // Fetch addons
       const addonsSnapshot = await getDocs(collection(db, "addons"));
-      const addonsData: any[] = [];
+      const addonsData: Addon[] = [];
       addonsSnapshot.forEach((doc) => {
-        addonsData.push({ id: doc.id, ...doc.data() });
+        addonsData.push({ id: doc.id, ...doc.data() } as Addon);
       });
 
       setProducts(productsData.filter((p) => p.available));
@@ -749,7 +806,8 @@ function EditOrderModal({
   const calculateTotal = () => {
     return items.reduce((total, item) => {
       const addonTotal = item.addons.reduce(
-        (sum: number, addon: any) => sum + addon.price,
+        (sum: number, addon: { name: string; price: number }) =>
+          sum + addon.price,
         0
       );
       return total + (item.unitPrice + addonTotal) * item.quantity;
@@ -770,16 +828,20 @@ function EditOrderModal({
     setItems((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const toggleAddon = (itemIndex: number, addon: any) => {
+  const toggleAddon = (itemIndex: number, addon: Addon) => {
     setItems((prev) =>
       prev.map((item, i) => {
         if (i !== itemIndex) return item;
 
-        const hasAddon = item.addons.find((a: any) => a.name === addon.name);
+        const hasAddon = item.addons.find(
+          (a: { name: string; price: number }) => a.name === addon.name
+        );
         if (hasAddon) {
           return {
             ...item,
-            addons: item.addons.filter((a: any) => a.name !== addon.name),
+            addons: item.addons.filter(
+              (a: { name: string; price: number }) => a.name !== addon.name
+            ),
           };
         } else {
           return {
@@ -886,7 +948,7 @@ function EditOrderModal({
         <CardContent className="space-y-6">
           {/* Customer Information */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
+            <div className="space-y-2">
               <Label htmlFor="customerName">Customer Name</Label>
               <Input
                 id="customerName"
@@ -895,7 +957,7 @@ function EditOrderModal({
                 placeholder="Enter customer name"
               />
             </div>
-            <div>
+            <div className="space-y-2">
               <Label htmlFor="customerPhone">Phone Number</Label>
               <Input
                 id="customerPhone"
@@ -904,7 +966,7 @@ function EditOrderModal({
                 placeholder="Enter phone number"
               />
             </div>
-            <div className="md:col-span-2">
+            <div className="md:col-span-2 space-y-2">
               <Label htmlFor="customerAddress">Delivery Address</Label>
               <Input
                 id="customerAddress"
@@ -913,7 +975,7 @@ function EditOrderModal({
                 placeholder="Enter delivery address"
               />
             </div>
-            <div className="md:col-span-2">
+            <div className="md:col-span-2 space-y-2">
               <Label htmlFor="notes">Notes</Label>
               <Input
                 id="notes"
@@ -1007,7 +1069,8 @@ function EditOrderModal({
                                   type="checkbox"
                                   id={`addon-${index}-${addon.id}`}
                                   checked={item.addons.some(
-                                    (a: any) => a.name === addon.name
+                                    (a: { name: string; price: number }) =>
+                                      a.name === addon.name
                                   )}
                                   onChange={() => toggleAddon(index, addon)}
                                   className="rounded"
@@ -1033,8 +1096,10 @@ function EditOrderModal({
                             {(
                               (item.unitPrice +
                                 item.addons.reduce(
-                                  (sum: number, addon: any) =>
-                                    sum + addon.price,
+                                  (
+                                    sum: number,
+                                    addon: { name: string; price: number }
+                                  ) => sum + addon.price,
                                   0
                                 )) *
                               item.quantity
@@ -1044,7 +1109,7 @@ function EditOrderModal({
                             variant="outline"
                             size="sm"
                             onClick={() => removeItem(index)}
-                            className="mt-2 text-red-600 hover:text-red-800"
+                            className="mt-2 text-buzz-burgundy hover:text-buzz-burgundy/80"
                           >
                             Remove
                           </Button>
@@ -1068,7 +1133,15 @@ function EditOrderModal({
           </Card>
 
           {/* Action Buttons */}
-          <div className="flex gap-4 pt-4">
+          <div className="flex justify-end gap-3 pt-4">
+            <Button
+              variant="outline"
+              onClick={onCancel}
+              disabled={loading}
+              className="w-24"
+            >
+              Cancel
+            </Button>
             <Button
               onClick={handleSave}
               disabled={
@@ -1078,17 +1151,9 @@ function EditOrderModal({
                 !customerAddress.trim() ||
                 items.length === 0
               }
-              className="flex-1"
+              className="w-32"
             >
               {loading ? "Updating..." : "Update Order"}
-            </Button>
-            <Button
-              variant="outline"
-              onClick={onCancel}
-              disabled={loading}
-              className="px-8"
-            >
-              Cancel
             </Button>
           </div>
         </CardContent>

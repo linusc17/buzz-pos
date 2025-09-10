@@ -7,6 +7,7 @@ import { Product, Addon, OrderItem } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface ProductSelectorProps {
   onAddToCart: (
@@ -102,10 +103,6 @@ export default function ProductSelector({ onAddToCart }: ProductSelectorProps) {
     return (selectedProduct.basePrice + addonTotal) * quantity;
   };
 
-  if (loading) {
-    return <div>Loading products...</div>;
-  }
-
   return (
     <div className="space-y-6">
       {/* Product Selection */}
@@ -114,36 +111,53 @@ export default function ProductSelector({ onAddToCart }: ProductSelectorProps) {
           <CardTitle>Select Product</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {products.map((product) => (
-              <div
-                key={product.id}
-                className={`p-4 border rounded-lg cursor-pointer transition-colors ${
-                  selectedProduct?.id === product.id
-                    ? "border-blue-500 bg-blue-50 dark:bg-blue-950"
-                    : "border-border hover:border-muted-foreground"
-                }`}
-                onClick={() => setSelectedProduct(product)}
-              >
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h3 className="font-medium text-foreground">
-                      {product.name}
-                    </h3>
-                    <p className="text-sm text-muted-foreground">
-                      {product.description}
-                    </p>
-                    <Badge variant="outline" className="mt-2 text-xs">
-                      {product.category}
-                    </Badge>
+          {loading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {Array.from({ length: 6 }).map((_, index) => (
+                <div key={index} className="p-4 border rounded-lg">
+                  <div className="flex justify-between items-start">
+                    <div className="space-y-2 flex-1">
+                      <Skeleton className="h-5 w-32" />
+                      <Skeleton className="h-4 w-48" />
+                      <Skeleton className="h-5 w-20 mt-2" />
+                    </div>
+                    <Skeleton className="h-6 w-12" />
                   </div>
-                  <span className="font-bold text-foreground">
-                    ₱{product.basePrice}
-                  </span>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {products.map((product) => (
+                <div
+                  key={product.id}
+                  className={`p-4 border rounded-lg cursor-pointer transition-colors ${
+                    selectedProduct?.id === product.id
+                      ? "border-blue-500 bg-blue-50 dark:bg-blue-950"
+                      : "border-border hover:border-muted-foreground"
+                  }`}
+                  onClick={() => setSelectedProduct(product)}
+                >
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h3 className="font-medium text-foreground">
+                        {product.name}
+                      </h3>
+                      <p className="text-sm text-muted-foreground">
+                        {product.description}
+                      </p>
+                      <Badge variant="outline" className="mt-2 text-xs">
+                        {product.category}
+                      </Badge>
+                    </div>
+                    <span className="font-bold text-foreground">
+                      ₱{product.basePrice}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
 

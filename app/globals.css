@@ -6,8 +6,15 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-proxima);
   --font-mono: var(--font-geist-mono);
+  --font-heading: var(--font-rosaline);
+  --font-display: var(--font-cocogoose);
+  --color-buzz-cream: #f3e4cf;
+  --color-buzz-brown: #50392b;
+  --color-buzz-orange: #ab5d29;
+  --color-buzz-burgundy: #a44848;
+  --color-buzz-gold: #e2c578;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -45,24 +52,25 @@
 
 :root {
   --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+  --background: #f3e4cf;
+  --foreground: #50392b;
+  --card: #f9f5f0;
+  --card-foreground: #50392b;
+  --popover: #f9f5f0;
+  --popover-foreground: #50392b;
+  --primary: #ab5d29;
+  --primary-foreground: #ffffff;
+  --secondary: #e2c578;
+  --secondary-foreground: #50392b;
+  --muted: #f3e4cf;
+  --muted-foreground: #8b7355;
+  --accent: #a44848;
+  --accent-foreground: #ffffff;
+  --destructive: #a44848;
+  --destructive-foreground: #ffffff;
+  --border: #e6d7c3;
+  --input: #f9f5f0;
+  --ring: #ab5d29;
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
@@ -79,24 +87,25 @@
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
+  --background: #3a2f26;
+  --foreground: #f3e4cf;
+  --card: #4a3d32;
+  --card-foreground: #f3e4cf;
+  --popover: #4a3d32;
+  --popover-foreground: #f3e4cf;
+  --primary: #ab5d29;
+  --primary-foreground: #ffffff;
+  --secondary: #8b7355;
+  --secondary-foreground: #f3e4cf;
+  --muted: #50392b;
+  --muted-foreground: #c4b49d;
+  --accent: #a44848;
+  --accent-foreground: #ffffff;
+  --destructive: #a44848;
+  --destructive-foreground: #ffffff;
+  --border: #5c4c3e;
+  --input: #50392b;
+  --ring: #ab5d29;
   --chart-1: oklch(0.488 0.243 264.376);
   --chart-2: oklch(0.696 0.17 162.48);
   --chart-3: oklch(0.769 0.188 70.08);
@@ -117,6 +126,45 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans;
+  }
+}
+
+@layer utilities {
+  .font-heading {
+    font-family: var(--font-rosaline), serif;
+  }
+  .font-display {
+    font-family: var(--font-cocogoose), sans-serif;
+  }
+  .text-buzz-cream {
+    color: #f3e4cf;
+  }
+  .text-buzz-brown {
+    color: #50392b;
+  }
+  .text-buzz-orange {
+    color: #ab5d29;
+  }
+  .text-buzz-burgundy {
+    color: #a44848;
+  }
+  .text-buzz-gold {
+    color: #e2c578;
+  }
+  .bg-buzz-cream {
+    background-color: #f3e4cf;
+  }
+  .bg-buzz-brown {
+    background-color: #50392b;
+  }
+  .bg-buzz-orange {
+    background-color: #ab5d29;
+  }
+  .bg-buzz-burgundy {
+    background-color: #a44848;
+  }
+  .bg-buzz-gold {
+    background-color: #e2c578;
   }
 }

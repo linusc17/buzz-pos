@@ -8,6 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { parseFirebaseError } from "@/lib/firebase-errors";
 import LoadingButton from "@/components/LoadingButton";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import Image from "next/image";
 import {
   Card,
   CardContent,
@@ -77,9 +78,25 @@ export default function LoginPage() {
         </div>
         <Card className="w-full">
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl font-bold">
-              Buzz Coffee POS
-            </CardTitle>
+            <div className="flex flex-col items-center gap-4 mb-4">
+              <Image
+                src="/darklogo.png"
+                alt="Buzz Coffee"
+                width={80}
+                height={80}
+                className="h-20 w-auto dark:hidden"
+              />
+              <Image
+                src="/lightlogo.png"
+                alt="Buzz Coffee"
+                width={80}
+                height={80}
+                className="h-20 w-auto hidden dark:block"
+              />
+              <CardTitle className="text-2xl font-heading font-bold text-buzz-brown dark:text-buzz-cream">
+                Buzz Coffee
+              </CardTitle>
+            </div>
             <CardDescription>Admin Login</CardDescription>
           </CardHeader>
           <CardContent>
