@@ -10,6 +10,7 @@ import {
   doc,
   updateDoc,
   deleteDoc,
+  Timestamp,
 } from "firebase/firestore";
 import { getFirebaseDb } from "@/lib/firebase-client";
 import { Order, Product, Addon } from "@/types";
@@ -37,8 +38,9 @@ import {
 import ConfirmModal from "@/components/ConfirmModal";
 import GenerateCustomerLinkModal from "@/components/GenerateCustomerLinkModal";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Edit, Trash2, Eye, UserPlus } from "lucide-react";
+import { Edit, Trash2, Eye, UserPlus, Copy } from "lucide-react";
 import { toast } from "sonner";
+import { formatTrackingUrl } from "@/lib/order-tracking";
 
 function OrdersContent() {
   const [loading, setLoading] = useState(true);
@@ -95,11 +97,29 @@ function OrdersContent() {
     try {
       const db = getFirebaseDb();
       const orderRef = doc(db, "orders", orderId);
-      await updateDoc(orderRef, { status: newStatus });
+
+      const currentOrder = orders.find((order) => order.id === orderId);
+      const statusHistory = currentOrder?.statusHistory || [];
+
+      const newStatusChange = {
+        status: newStatus,
+        timestamp: Timestamp.now(),
+      };
+
+      await updateDoc(orderRef, {
+        status: newStatus,
+        statusHistory: [...statusHistory, newStatusChange],
+      });
 
       setOrders((prevOrders) =>
         prevOrders.map((order) =>
-          order.id === orderId ? { ...order, status: newStatus } : order
+          order.id === orderId
+            ? {
+                ...order,
+                status: newStatus,
+                statusHistory: [...statusHistory, newStatusChange],
+              }
+            : order
         )
       );
       toast.success(`Order status updated to ${newStatus.replace("-", " ")}`);
@@ -123,6 +143,18 @@ function OrdersContent() {
       console.error("Error deleting order:", error);
       toast.error("Error deleting order. Please try again.");
     }
+  };
+
+  const handleCopyTrackingLink = (orderId: string) => {
+    const trackingUrl = formatTrackingUrl(orderId);
+    navigator.clipboard
+      .writeText(trackingUrl)
+      .then(() => {
+        toast.success("Tracking link copied to clipboard");
+      })
+      .catch(() => {
+        toast.error("Failed to copy tracking link");
+      });
   };
 
   const getStatusCounts = () => {
@@ -444,6 +476,14 @@ function OrdersContent() {
                               title="View Order Details"
                             >
                               <Eye className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleCopyTrackingLink(order.id)}
+                              title="Copy Tracking Link"
+                            >
+                              <Copy className="h-4 w-4" />
                             </Button>
                             <Button
                               variant="outline"

@@ -1,9 +1,17 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { collection, addDoc, Timestamp, query, where, getDocs } from "firebase/firestore";
+import {
+  collection,
+  addDoc,
+  Timestamp,
+  query,
+  where,
+  getDocs,
+} from "firebase/firestore";
 import { getFirebaseDb } from "@/lib/firebase-client";
 import { markTokenAsUsed } from "@/lib/customer-tokens";
+import { formatTrackingUrl } from "@/lib/order-tracking";
 import { Product, Addon, OrderItem, CustomerToken } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -19,7 +27,10 @@ interface CustomerOrderFormProps {
   onOrderSuccess: () => void;
 }
 
-export default function CustomerOrderForm({ tokenData, onOrderSuccess }: CustomerOrderFormProps) {
+export default function CustomerOrderForm({
+  tokenData,
+  onOrderSuccess,
+}: CustomerOrderFormProps) {
   const [products, setProducts] = useState<Product[]>([]);
   const [addons, setAddons] = useState<Addon[]>([]);
   const [loading, setLoading] = useState(true);
@@ -27,13 +38,19 @@ export default function CustomerOrderForm({ tokenData, onOrderSuccess }: Custome
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [selectedAddons, setSelectedAddons] = useState<Addon[]>([]);
   const [quantity, setQuantity] = useState(1);
-  
+
   // Customer details form
-  const [customerName, setCustomerName] = useState(tokenData.customerName || "");
-  const [customerPhone, setCustomerPhone] = useState(tokenData.customerPhone || "");
-  const [customerAddress, setCustomerAddress] = useState(tokenData.customerAddress || "");
+  const [customerName, setCustomerName] = useState(
+    tokenData.customerName || ""
+  );
+  const [customerPhone, setCustomerPhone] = useState(
+    tokenData.customerPhone || ""
+  );
+  const [customerAddress, setCustomerAddress] = useState(
+    tokenData.customerAddress || ""
+  );
   const [notes, setNotes] = useState("");
-  
+
   const [submitting, setSubmitting] = useState(false);
   const [orderSubmitted, setOrderSubmitted] = useState(false);
   const [orderId, setOrderId] = useState("");
@@ -135,14 +152,20 @@ export default function CustomerOrderForm({ tokenData, onOrderSuccess }: Custome
 
   const calculateSubtotal = () => {
     return cart.reduce((total, item) => {
-      const addonTotal = item.addons.reduce((sum, addon) => sum + addon.price, 0);
+      const addonTotal = item.addons.reduce(
+        (sum, addon) => sum + addon.price,
+        0
+      );
       return total + (item.unitPrice + addonTotal) * item.quantity;
     }, 0);
   };
 
   const calculateItemTotal = () => {
     if (!selectedProduct) return 0;
-    const addonTotal = selectedAddons.reduce((sum, addon) => sum + addon.price, 0);
+    const addonTotal = selectedAddons.reduce(
+      (sum, addon) => sum + addon.price,
+      0
+    );
     return (selectedProduct.basePrice + addonTotal) * quantity;
   };
 
@@ -170,7 +193,7 @@ export default function CustomerOrderForm({ tokenData, onOrderSuccess }: Custome
     try {
       const db = getFirebaseDb();
       const subtotal = calculateSubtotal();
-      
+
       const orderData = {
         customerName: customerName.trim(),
         customerPhone: customerPhone.trim(),
@@ -182,16 +205,22 @@ export default function CustomerOrderForm({ tokenData, onOrderSuccess }: Custome
         createdAt: Timestamp.now(),
         notes: notes.trim() || "",
         items: cart,
+        statusHistory: [
+          {
+            status: "pending" as const,
+            timestamp: Timestamp.now(),
+          },
+        ],
       };
 
       const docRef = await addDoc(collection(db, "orders"), orderData);
-      
+
       await markTokenAsUsed(tokenData.id, docRef.id);
 
       setOrderId(docRef.id);
       setOrderSubmitted(true);
       onOrderSuccess();
-      
+
       toast.success("Order submitted successfully!");
     } catch (error) {
       console.error("Error creating order:", error);
@@ -213,13 +242,29 @@ export default function CustomerOrderForm({ tokenData, onOrderSuccess }: Custome
               Order Submitted Successfully!
             </h2>
             <p className="text-muted-foreground mb-6">
-              Thank you for your order! We&apos;ll contact you shortly to confirm the details and final total including any delivery fees.
+              Thank you for your order! We&apos;ll contact you shortly to
+              confirm the details and final total including any delivery fees.
             </p>
             <div className="bg-muted p-4 rounded-lg mb-6">
-              <p className="text-sm font-medium">Order ID: #{orderId.slice(-6)}</p>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm font-medium">
+                Order ID: #{orderId.slice(-6)}
+              </p>
+              <p className="text-sm text-muted-foreground mb-3">
                 This link has now expired and cannot be used again.
               </p>
+              <div className="bg-background p-3 rounded border">
+                <p className="text-xs font-medium text-foreground mb-1">
+                  Track your order:
+                </p>
+                <a
+                  href={formatTrackingUrl(orderId)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs font-mono text-buzz-orange break-all hover:underline"
+                >
+                  {formatTrackingUrl(orderId)}
+                </a>
+              </div>
             </div>
             <p className="text-sm text-muted-foreground">
               For any questions, message us on Instagram @beanbuzzph
@@ -281,19 +326,23 @@ export default function CustomerOrderForm({ tokenData, onOrderSuccess }: Custome
                           key={product.id}
                           className={`p-3 border rounded-lg cursor-pointer transition-colors ${
                             selectedProduct?.id === product.id
-                              ? "border-blue-500 bg-blue-50 dark:bg-blue-950"
+                              ? "border-buzz-orange bg-buzz-cream/20 dark:bg-buzz-brown/20"
                               : "border-border hover:border-muted-foreground"
                           }`}
                           onClick={() => setSelectedProduct(product)}
                         >
                           <div className="flex justify-between items-start">
                             <div className="flex-1">
-                              <h4 className="font-medium text-foreground">{product.name}</h4>
+                              <h4 className="font-medium text-foreground">
+                                {product.name}
+                              </h4>
                               <p className="text-xs text-muted-foreground line-clamp-2">
                                 {product.description}
                               </p>
                             </div>
-                            <span className="font-bold text-foreground ml-2">₱{product.basePrice}</span>
+                            <span className="font-bold text-foreground ml-2">
+                              ₱{product.basePrice}
+                            </span>
                           </div>
                         </div>
                       ))}
@@ -317,19 +366,23 @@ export default function CustomerOrderForm({ tokenData, onOrderSuccess }: Custome
                     key={addon.id}
                     className={`p-3 border rounded-lg cursor-pointer transition-colors ${
                       selectedAddons.find((a) => a.id === addon.id)
-                        ? "border-green-500 bg-green-50 dark:bg-green-950"
+                        ? "border-buzz-gold bg-buzz-cream/20 dark:bg-buzz-brown/20"
                         : "border-border hover:border-muted-foreground"
                     }`}
                     onClick={() => toggleAddon(addon)}
                   >
                     <div className="flex justify-between items-center">
                       <div className="flex items-center gap-2">
-                        <span className="font-medium text-foreground">{addon.name}</span>
+                        <span className="font-medium text-foreground">
+                          {addon.name}
+                        </span>
                         <Badge variant="outline" className="text-xs">
                           {addon.type}
                         </Badge>
                       </div>
-                      <span className="font-bold text-foreground">+₱{addon.price}</span>
+                      <span className="font-bold text-foreground">
+                        +₱{addon.price}
+                      </span>
                     </div>
                   </div>
                 ))}
@@ -365,7 +418,9 @@ export default function CustomerOrderForm({ tokenData, onOrderSuccess }: Custome
 
                 <div className="border-t border-border pt-4">
                   <div className="flex justify-between items-center mb-4">
-                    <span className="font-medium text-foreground">Item Total:</span>
+                    <span className="font-medium text-foreground">
+                      Item Total:
+                    </span>
                     <span className="text-xl font-bold text-foreground">
                       ₱{calculateItemTotal().toLocaleString()}
                     </span>
@@ -380,7 +435,6 @@ export default function CustomerOrderForm({ tokenData, onOrderSuccess }: Custome
             </CardContent>
           </Card>
         )}
-
       </div>
 
       <div className="space-y-6">
@@ -405,7 +459,9 @@ export default function CustomerOrderForm({ tokenData, onOrderSuccess }: Custome
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => updateQuantity(index, item.quantity - 1)}
+                          onClick={() =>
+                            updateQuantity(index, item.quantity - 1)
+                          }
                         >
                           -
                         </Button>
@@ -413,7 +469,9 @@ export default function CustomerOrderForm({ tokenData, onOrderSuccess }: Custome
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => updateQuantity(index, item.quantity + 1)}
+                          onClick={() =>
+                            updateQuantity(index, item.quantity + 1)
+                          }
                         >
                           +
                         </Button>
@@ -430,7 +488,10 @@ export default function CustomerOrderForm({ tokenData, onOrderSuccess }: Custome
                         ₱
                         {(
                           (item.unitPrice +
-                            item.addons.reduce((sum, addon) => sum + addon.price, 0)) *
+                            item.addons.reduce(
+                              (sum, addon) => sum + addon.price,
+                              0
+                            )) *
                           item.quantity
                         ).toLocaleString()}
                       </p>
@@ -526,7 +587,8 @@ export default function CustomerOrderForm({ tokenData, onOrderSuccess }: Custome
             </Button>
 
             <p className="text-xs text-muted-foreground text-center">
-              By submitting, you agree that we may contact you to confirm order details and delivery fees.
+              By submitting, you agree that we may contact you to confirm order
+              details and delivery fees.
             </p>
           </CardContent>
         </Card>

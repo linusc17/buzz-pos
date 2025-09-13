@@ -30,6 +30,12 @@ export interface OrderItem {
   }[];
 }
 
+export interface OrderStatusChange {
+  status: "pending" | "preparing" | "ready" | "out-for-delivery" | "delivered";
+  timestamp: Timestamp;
+  notes?: string;
+}
+
 export interface Order {
   id: string;
   customerName: string;
@@ -42,6 +48,9 @@ export interface Order {
   createdAt: Timestamp;
   notes?: string;
   items: OrderItem[];
+  statusHistory?: OrderStatusChange[];
+  estimatedDeliveryTime?: Timestamp;
+  trackingNotes?: string;
 }
 
 export interface CustomerToken {

@@ -107,6 +107,12 @@ export default function NewOrderPage() {
         createdAt: Timestamp.now(),
         notes: notes.trim() || "",
         items: cart,
+        statusHistory: [
+          {
+            status: "pending" as const,
+            timestamp: Timestamp.now(),
+          },
+        ],
       };
 
       await addDoc(collection(db, "orders"), orderData);

@@ -161,7 +161,7 @@ export default function GenerateCustomerLinkModal({
         ) : (
           <div className="space-y-4">
             <Card>
-              <CardContent className="pt-6">
+              <CardContent>
                 <div className="space-y-4">
                   <div className="flex items-center gap-2 text-green-600">
                     <Check className="h-4 w-4" />
