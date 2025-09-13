@@ -19,12 +19,10 @@ export default function NavigationButtons({ buttons }: NavigationButtonsProps) {
   const handleNavigation = async (href: string, label: string) => {
     setLoadingButton(label);
 
-    // Small delay to show loading state
     await new Promise((resolve) => setTimeout(resolve, 100));
 
     router.push(href);
 
-    // Reset loading state after navigation
     setTimeout(() => {
       setLoadingButton(null);
     }, 500);

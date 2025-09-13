@@ -58,7 +58,6 @@ export default function ProductsPage() {
 
   const fetchData = async () => {
     try {
-      // Fetch products
       const productsSnapshot = await getDocs(collection(db, "products"));
       const productsData: Product[] = [];
       productsSnapshot.forEach((doc) => {
@@ -66,7 +65,6 @@ export default function ProductsPage() {
       });
       setProducts(productsData);
 
-      // Fetch addons
       const addonsSnapshot = await getDocs(collection(db, "addons"));
       const addonsData: Addon[] = [];
       addonsSnapshot.forEach((doc) => {
@@ -83,7 +81,6 @@ export default function ProductsPage() {
   ) => {
     try {
       if (editingProduct) {
-        // Update existing product
         const productRef = doc(db, "products", editingProduct.id);
         await updateDoc(productRef, {
           ...productData,
@@ -103,7 +100,6 @@ export default function ProductsPage() {
         );
         toast.success("Product updated successfully!");
       } else {
-        // Create new product
         const newProduct = {
           ...productData,
           createdAt: Timestamp.now(),
@@ -126,7 +122,6 @@ export default function ProductsPage() {
   const handleSaveAddon = async (addonData: Omit<Addon, "id">) => {
     try {
       if (editingAddon) {
-        // Update existing addon
         const addonRef = doc(db, "addons", editingAddon.id);
         await updateDoc(addonRef, addonData);
 
@@ -137,7 +132,6 @@ export default function ProductsPage() {
         );
         toast.success("Add-on updated successfully!");
       } else {
-        // Create new addon
         const docRef = await addDoc(collection(db, "addons"), addonData);
         setAddons((prev) => [...prev, { id: docRef.id, ...addonData }]);
         toast.success("Add-on created successfully!");
@@ -404,7 +398,6 @@ export default function ProductsPage() {
   );
 }
 
-// Product Form Component
 function ProductForm({
   product,
   onSave,
@@ -531,7 +524,6 @@ function ProductForm({
   );
 }
 
-// Addon Form Component
 function AddonForm({
   addon,
   onSave,

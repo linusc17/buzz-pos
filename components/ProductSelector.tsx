@@ -112,47 +112,68 @@ export default function ProductSelector({ onAddToCart }: ProductSelectorProps) {
         </CardHeader>
         <CardContent>
           {loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {Array.from({ length: 6 }).map((_, index) => (
-                <div key={index} className="p-4 border rounded-lg">
-                  <div className="flex justify-between items-start">
-                    <div className="space-y-2 flex-1">
-                      <Skeleton className="h-5 w-32" />
-                      <Skeleton className="h-4 w-48" />
-                      <Skeleton className="h-5 w-20 mt-2" />
-                    </div>
-                    <Skeleton className="h-6 w-12" />
+            <div className="space-y-6">
+              {Array.from({ length: 2 }).map((_, categoryIndex) => (
+                <div key={categoryIndex}>
+                  <Skeleton className="h-6 w-32 mb-3" />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {Array.from({ length: 4 }).map((_, index) => (
+                      <div key={index} className="p-3 border rounded-lg">
+                        <div className="flex justify-between items-start">
+                          <div className="space-y-1 flex-1">
+                            <Skeleton className="h-4 w-24" />
+                            <Skeleton className="h-3 w-32" />
+                          </div>
+                          <Skeleton className="h-4 w-12" />
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {products.map((product) => (
-                <div
-                  key={product.id}
-                  className={`p-4 border rounded-lg cursor-pointer transition-colors ${
-                    selectedProduct?.id === product.id
-                      ? "border-blue-500 bg-blue-50 dark:bg-blue-950"
-                      : "border-border hover:border-muted-foreground"
-                  }`}
-                  onClick={() => setSelectedProduct(product)}
-                >
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h3 className="font-medium text-foreground">
-                        {product.name}
-                      </h3>
-                      <p className="text-sm text-muted-foreground">
-                        {product.description}
-                      </p>
-                      <Badge variant="outline" className="mt-2 text-xs">
-                        {product.category}
-                      </Badge>
-                    </div>
-                    <span className="font-bold text-foreground">
-                      ₱{product.basePrice}
-                    </span>
+            <div className="space-y-6">
+              {Object.entries(
+                products.reduce((acc, product) => {
+                  const category = product.category;
+                  if (!acc[category]) {
+                    acc[category] = [];
+                  }
+                  acc[category].push(product);
+                  return acc;
+                }, {} as Record<string, typeof products>)
+              ).map(([category, categoryProducts]) => (
+                <div key={category}>
+                  <h3 className="text-lg font-semibold text-foreground mb-3 capitalize">
+                    {category.replace("-", " ")}
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {categoryProducts.map((product) => (
+                      <div
+                        key={product.id}
+                        className={`p-3 border rounded-lg cursor-pointer transition-colors ${
+                          selectedProduct?.id === product.id
+                            ? "border-blue-500 bg-blue-50 dark:bg-blue-950"
+                            : "border-border hover:border-muted-foreground"
+                        }`}
+                        onClick={() => setSelectedProduct(product)}
+                      >
+                        <div className="flex justify-between items-start">
+                          <div className="flex-1">
+                            <h4 className="font-medium text-foreground">
+                              {product.name}
+                            </h4>
+                            <p className="text-xs text-muted-foreground line-clamp-2">
+                              {product.description}
+                            </p>
+                          </div>
+                          <span className="font-bold text-foreground ml-2">
+                            ₱{product.basePrice}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               ))}
@@ -161,14 +182,13 @@ export default function ProductSelector({ onAddToCart }: ProductSelectorProps) {
         </CardContent>
       </Card>
 
-      {/* Add-ons Selection */}
       {selectedProduct && (
         <Card>
           <CardHeader>
             <CardTitle>Add-ons (Optional)</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {addons.map((addon) => (
                 <div
                   key={addon.id}
@@ -180,11 +200,11 @@ export default function ProductSelector({ onAddToCart }: ProductSelectorProps) {
                   onClick={() => toggleAddon(addon)}
                 >
                   <div className="flex justify-between items-center">
-                    <div>
+                    <div className="flex items-center gap-2">
                       <span className="font-medium text-foreground">
                         {addon.name}
                       </span>
-                      <Badge variant="outline" className="ml-2 text-xs">
+                      <Badge variant="outline" className="text-xs">
                         {addon.type}
                       </Badge>
                     </div>
@@ -199,12 +219,8 @@ export default function ProductSelector({ onAddToCart }: ProductSelectorProps) {
         </Card>
       )}
 
-      {/* Quantity and Add to Cart */}
       {selectedProduct && (
         <Card>
-          <CardHeader>
-            <CardTitle>Quantity & Add to Cart</CardTitle>
-          </CardHeader>
           <CardContent>
             <div className="space-y-4">
               <div className="flex items-center gap-4">

@@ -1,4 +1,3 @@
-// Firebase error code to user-friendly message mapping
 export const getFirebaseErrorMessage = (errorCode: string): string => {
   switch (errorCode) {
     case "auth/invalid-credential":
@@ -31,15 +30,12 @@ export const getFirebaseErrorMessage = (errorCode: string): string => {
 };
 
 export const parseFirebaseError = (error: unknown): string => {
-  // Type guard for Firebase errors
   if (error && typeof error === "object" && "code" in error) {
     return getFirebaseErrorMessage(error.code as string);
   }
 
-  // Type guard for errors with message
   if (error && typeof error === "object" && "message" in error) {
     const message = error.message as string;
-    // Extract Firebase error code from message if present
     const codeMatch = message.match(/\(([^)]+)\)/);
     if (codeMatch) {
       return getFirebaseErrorMessage(codeMatch[1]);

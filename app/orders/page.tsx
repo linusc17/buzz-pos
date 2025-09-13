@@ -35,8 +35,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import ConfirmModal from "@/components/ConfirmModal";
+import GenerateCustomerLinkModal from "@/components/GenerateCustomerLinkModal";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Edit, Trash2, Eye } from "lucide-react";
+import { Edit, Trash2, Eye, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 
 function OrdersContent() {
@@ -96,7 +97,6 @@ function OrdersContent() {
       const orderRef = doc(db, "orders", orderId);
       await updateDoc(orderRef, { status: newStatus });
 
-      // Update local state
       setOrders((prevOrders) =>
         prevOrders.map((order) =>
           order.id === orderId ? { ...order, status: newStatus } : order
@@ -115,7 +115,6 @@ function OrdersContent() {
       const orderRef = doc(db, "orders", orderId);
       await deleteDoc(orderRef);
 
-      // Update local state
       setOrders((prevOrders) =>
         prevOrders.filter((order) => order.id !== orderId)
       );
@@ -145,7 +144,6 @@ function OrdersContent() {
 
   const statusCounts = getStatusCounts();
 
-  // Pagination logic
   const indexOfLastOrder = currentPage * ordersPerPage;
   const indexOfFirstOrder = indexOfLastOrder - ordersPerPage;
   const currentOrders = filteredOrders.slice(
@@ -163,13 +161,26 @@ function OrdersContent() {
       <MainNavigation />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-heading font-bold text-buzz-brown dark:text-buzz-cream">
-            All Orders
-          </h1>
-          <p className="text-muted-foreground mt-2">
-            Manage and track all your coffee orders
-          </p>
+        <div className="mb-8 flex justify-between items-start">
+          <div>
+            <h1 className="text-3xl font-heading font-bold text-buzz-brown dark:text-buzz-cream">
+              All Orders
+            </h1>
+            <p className="text-muted-foreground mt-2">
+              Manage and track all your coffee orders
+            </p>
+          </div>
+          <div className="flex gap-3">
+            <GenerateCustomerLinkModal>
+              <Button variant="outline" className="flex items-center gap-2">
+                <UserPlus className="h-4 w-4" />
+                Generate Customer Link
+              </Button>
+            </GenerateCustomerLinkModal>
+            <Button onClick={() => router.push("/orders/new")}>
+              Create New Order
+            </Button>
+          </div>
         </div>
         {/* Status Filter and Counts */}
         <Card className="mb-8">
@@ -551,7 +562,6 @@ function OrdersContent() {
   );
 }
 
-// View Order Modal Component
 function ViewOrderModal({
   order,
   onClose,
@@ -559,10 +569,17 @@ function ViewOrderModal({
   order: Order;
   onClose: () => void;
 }) {
-  const totalAmount = order.items.reduce((total, item) => {
-    const addonTotal = item.addons.reduce((sum, addon) => sum + addon.price, 0);
-    return total + (item.unitPrice + addonTotal) * item.quantity;
-  }, 0);
+  const subtotal =
+    order.subtotal ||
+    order.items.reduce((total, item) => {
+      const addonTotal = item.addons.reduce(
+        (sum, addon) => sum + addon.price,
+        0
+      );
+      return total + (item.unitPrice + addonTotal) * item.quantity;
+    }, 0);
+  const deliveryFee = order.deliveryFee || 0;
+  const totalAmount = subtotal + deliveryFee;
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -735,8 +752,22 @@ function ViewOrderModal({
               </Table>
 
               {/* Order Total */}
-              <div className="border-t mt-4 pt-4">
+              <div className="border-t mt-4 pt-4 space-y-2">
                 <div className="flex justify-between items-center">
+                  <span className="text-lg">Subtotal:</span>
+                  <span className="text-lg font-medium">
+                    ₱{subtotal.toLocaleString()}
+                  </span>
+                </div>
+                {deliveryFee > 0 && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-lg">Delivery Fee:</span>
+                    <span className="text-lg font-medium">
+                      ₱{deliveryFee.toLocaleString()}
+                    </span>
+                  </div>
+                )}
+                <div className="flex justify-between items-center border-t pt-2">
                   <span className="text-xl font-bold">Total Amount:</span>
                   <span className="text-2xl font-bold text-green-600">
                     ₱{totalAmount.toLocaleString()}
@@ -751,7 +782,6 @@ function ViewOrderModal({
   );
 }
 
-// Edit Order Modal Component
 function EditOrderModal({
   order,
   onSave,
@@ -765,6 +795,7 @@ function EditOrderModal({
   const [customerPhone, setCustomerPhone] = useState(order.customerPhone);
   const [customerAddress, setCustomerAddress] = useState(order.customerAddress);
   const [notes, setNotes] = useState(order.notes || "");
+  const [deliveryFee, setDeliveryFee] = useState(order.deliveryFee || 0);
   const [items, setItems] = useState(order.items);
   const [products, setProducts] = useState<Product[]>([]);
   const [addons, setAddons] = useState<Addon[]>([]);
@@ -779,14 +810,12 @@ function EditOrderModal({
     try {
       const db = getFirebaseDb();
 
-      // Fetch products
       const productsSnapshot = await getDocs(collection(db, "products"));
       const productsData: Product[] = [];
       productsSnapshot.forEach((doc) => {
         productsData.push({ id: doc.id, ...doc.data() } as Product);
       });
 
-      // Fetch addons
       const addonsSnapshot = await getDocs(collection(db, "addons"));
       const addonsData: Addon[] = [];
       addonsSnapshot.forEach((doc) => {
@@ -803,7 +832,7 @@ function EditOrderModal({
     }
   };
 
-  const calculateTotal = () => {
+  const calculateSubtotal = () => {
     return items.reduce((total, item) => {
       const addonTotal = item.addons.reduce(
         (sum: number, addon: { name: string; price: number }) =>
@@ -812,6 +841,10 @@ function EditOrderModal({
       );
       return total + (item.unitPrice + addonTotal) * item.quantity;
     }, 0);
+  };
+
+  const calculateTotal = () => {
+    return calculateSubtotal() + deliveryFee;
   };
 
   const updateItemQuantity = (index: number, quantity: number) => {
@@ -905,6 +938,8 @@ function EditOrderModal({
         customerAddress: customerAddress.trim(),
         notes: notes.trim(),
         items: items,
+        subtotal: calculateSubtotal(),
+        deliveryFee: deliveryFee,
         totalAmount: calculateTotal(),
       };
 
@@ -975,7 +1010,7 @@ function EditOrderModal({
                 placeholder="Enter delivery address"
               />
             </div>
-            <div className="md:col-span-2 space-y-2">
+            <div className="space-y-2">
               <Label htmlFor="notes">Notes</Label>
               <Input
                 id="notes"
@@ -983,6 +1018,21 @@ function EditOrderModal({
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder="Special instructions"
               />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="deliveryFee">Delivery Fee (₱)</Label>
+              <Input
+                id="deliveryFee"
+                type="number"
+                min="0"
+                step="0.01"
+                value={deliveryFee}
+                onChange={(e) => setDeliveryFee(Number(e.target.value) || 0)}
+                placeholder="0"
+              />
+              <p className="text-xs text-muted-foreground">
+                Add delivery fee based on location distance
+              </p>
             </div>
           </div>
 
@@ -1121,8 +1171,20 @@ function EditOrderModal({
               )}
 
               {/* Total */}
-              <div className="border-t mt-6 pt-4">
+              <div className="border-t mt-6 pt-4 space-y-2">
                 <div className="flex justify-between items-center">
+                  <span className="text-lg">Subtotal:</span>
+                  <span className="text-lg font-medium">
+                    ₱{calculateSubtotal().toLocaleString()}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-lg">Delivery Fee:</span>
+                  <span className="text-lg font-medium">
+                    ₱{deliveryFee.toLocaleString()}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center border-t pt-2">
                   <span className="text-xl font-bold">Total Amount:</span>
                   <span className="text-2xl font-bold text-green-600">
                     ₱{calculateTotal().toLocaleString()}

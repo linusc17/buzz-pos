@@ -13,6 +13,7 @@ import { Order, DashboardStats } from "@/types";
 import { useAuth } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import MainNavigation from "@/components/MainNavigation";
+import GenerateCustomerLinkModal from "@/components/GenerateCustomerLinkModal";
 import {
   Card,
   CardContent,
@@ -21,7 +22,9 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { UserPlus } from "lucide-react";
 
 function DashboardContent() {
   const {} = useAuth();
@@ -59,7 +62,6 @@ function DashboardContent() {
         orders.push({ id: doc.id, ...doc.data() } as Order);
       });
 
-      // Calculate stats
       const todayOrders = orders.length;
       const totalSales = orders.reduce(
         (sum, order) => sum + order.totalAmount,
@@ -76,7 +78,6 @@ function DashboardContent() {
 
       setStats({ todayOrders, totalSales, pendingDeliveries, completedOrders });
 
-      // Get recent orders (last 5)
       const sortedOrders = orders
         .sort((a, b) => b.createdAt.toMillis() - a.createdAt.toMillis())
         .slice(0, 5);
@@ -110,13 +111,21 @@ function DashboardContent() {
       <MainNavigation />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-heading font-bold text-buzz-brown dark:text-buzz-cream">
-            Dashboard
-          </h1>
-          <p className="text-muted-foreground mt-2">
-            Overview of your coffee shop operations
-          </p>
+        <div className="mb-8 flex justify-between items-start">
+          <div>
+            <h1 className="text-3xl font-heading font-bold text-buzz-brown dark:text-buzz-cream">
+              Dashboard
+            </h1>
+            <p className="text-muted-foreground mt-2">
+              Overview of your coffee shop operations
+            </p>
+          </div>
+          <GenerateCustomerLinkModal>
+            <Button variant="outline" className="flex items-center gap-2">
+              <UserPlus className="h-4 w-4" />
+              Generate Customer Link
+            </Button>
+          </GenerateCustomerLinkModal>
         </div>
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">

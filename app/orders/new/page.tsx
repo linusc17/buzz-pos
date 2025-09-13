@@ -95,11 +95,14 @@ export default function NewOrderPage() {
     setSubmitting(true);
 
     try {
+      const subtotal = calculateTotal();
       const orderData = {
         customerName: customerName.trim(),
         customerPhone: customerPhone.trim(),
         customerAddress: customerAddress.trim(),
-        totalAmount: calculateTotal(),
+        subtotal: subtotal,
+        deliveryFee: 0,
+        totalAmount: subtotal,
         status: "pending" as const,
         createdAt: Timestamp.now(),
         notes: notes.trim() || "",
@@ -108,7 +111,6 @@ export default function NewOrderPage() {
 
       await addDoc(collection(db, "orders"), orderData);
 
-      // Reset form
       setCart([]);
       setCustomerName("");
       setCustomerPhone("");

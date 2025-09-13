@@ -35,11 +35,27 @@ export interface Order {
   customerName: string;
   customerPhone: string;
   customerAddress: string;
+  subtotal: number;
+  deliveryFee: number;
   totalAmount: number;
   status: "pending" | "preparing" | "ready" | "out-for-delivery" | "delivered";
   createdAt: Timestamp;
   notes?: string;
   items: OrderItem[];
+}
+
+export interface CustomerToken {
+  id: string;
+  token: string;
+  customerName?: string;
+  customerPhone?: string;
+  customerAddress?: string;
+  createdAt: Timestamp;
+  expiresAt: Timestamp;
+  createdBy: string;
+  isUsed: boolean;
+  usedAt?: Timestamp;
+  orderId?: string;
 }
 
 export interface DashboardStats {
