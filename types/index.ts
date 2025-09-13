@@ -28,6 +28,7 @@ export interface OrderItem {
     name: string;
     price: number;
   }[];
+  drinkName?: string;
 }
 
 export interface OrderStatusChange {

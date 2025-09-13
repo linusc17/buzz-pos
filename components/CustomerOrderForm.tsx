@@ -38,6 +38,7 @@ export default function CustomerOrderForm({
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [selectedAddons, setSelectedAddons] = useState<Addon[]>([]);
   const [quantity, setQuantity] = useState(1);
+  const [drinkNames, setDrinkNames] = useState<string[]>([""]);
 
   // Customer details form
   const [customerName, setCustomerName] = useState(
@@ -98,37 +99,28 @@ export default function CustomerOrderForm({
   const addToCart = () => {
     if (!selectedProduct) return;
 
-    const item: OrderItem = {
-      productId: selectedProduct.id,
-      productName: selectedProduct.name,
-      quantity: quantity,
-      unitPrice: selectedProduct.basePrice,
-      addons: selectedAddons.map((addon) => ({
-        name: addon.name,
-        price: addon.price,
-      })),
-    };
+    const newItems: OrderItem[] = [];
+    for (let i = 0; i < quantity; i++) {
+      const item: OrderItem = {
+        productId: selectedProduct.id,
+        productName: selectedProduct.name,
+        quantity: 1,
+        unitPrice: selectedProduct.basePrice,
+        addons: selectedAddons.map((addon) => ({
+          name: addon.name,
+          price: addon.price,
+        })),
+        drinkName: drinkNames[i]?.trim() || undefined,
+      };
+      newItems.push(item);
+    }
 
-    setCart((prevCart) => {
-      const existingItemIndex = prevCart.findIndex(
-        (cartItem) =>
-          cartItem.productId === item.productId &&
-          JSON.stringify(cartItem.addons) === JSON.stringify(item.addons)
-      );
+    setCart((prevCart) => [...prevCart, ...newItems]);
 
-      if (existingItemIndex > -1) {
-        const updatedCart = [...prevCart];
-        updatedCart[existingItemIndex].quantity += item.quantity;
-        return updatedCart;
-      } else {
-        return [...prevCart, item];
-      }
-    });
-
-    // Reset selection
     setSelectedProduct(null);
     setSelectedAddons([]);
     setQuantity(1);
+    setDrinkNames([""]);
     toast.success("Added to cart!");
   };
 
@@ -137,15 +129,10 @@ export default function CustomerOrderForm({
     toast.success("Removed from cart");
   };
 
-  const updateQuantity = (index: number, newQuantity: number) => {
-    if (newQuantity <= 0) {
-      removeFromCart(index);
-      return;
-    }
-
+  const updateDrinkName = (index: number, name: string) => {
     setCart((prevCart) => {
       const updatedCart = [...prevCart];
-      updatedCart[index].quantity = newQuantity;
+      updatedCart[index].drinkName = name.trim() || undefined;
       return updatedCart;
     });
   };
@@ -401,7 +388,11 @@ export default function CustomerOrderForm({
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                      onClick={() => {
+                        const newQty = Math.max(1, quantity - 1);
+                        setQuantity(newQty);
+                        setDrinkNames((prev) => prev.slice(0, newQty));
+                      }}
                     >
                       -
                     </Button>
@@ -409,12 +400,43 @@ export default function CustomerOrderForm({
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => setQuantity(quantity + 1)}
+                      onClick={() => {
+                        const newQty = quantity + 1;
+                        setQuantity(newQty);
+                        setDrinkNames((prev) => [...prev, ""]);
+                      }}
                     >
                       +
                     </Button>
                   </div>
                 </div>
+
+                {quantity > 0 && (
+                  <div className="space-y-3">
+                    <span className="text-foreground font-medium">
+                      Drink Names (Optional):
+                    </span>
+                    <div className="space-y-3 pt-2">
+                      {Array.from({ length: quantity }, (_, index) => (
+                        <div key={index} className="flex items-center gap-2">
+                          <span className="text-sm text-muted-foreground w-16">
+                            Drink {index + 1}:
+                          </span>
+                          <Input
+                            value={drinkNames[index] || ""}
+                            onChange={(e) => {
+                              const newNames = [...drinkNames];
+                              newNames[index] = e.target.value;
+                              setDrinkNames(newNames);
+                            }}
+                            placeholder="e.g., John, Mary"
+                            className="flex-1"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 <div className="border-t border-border pt-4">
                   <div className="flex justify-between items-center mb-4">
@@ -450,59 +472,52 @@ export default function CustomerOrderForm({
             ) : (
               <div className="space-y-4">
                 {cart.map((item, index) => (
-                  <div
-                    key={index}
-                    className="flex justify-between items-start p-3 border rounded-lg"
-                  >
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() =>
-                            updateQuantity(index, item.quantity - 1)
-                          }
-                        >
-                          -
-                        </Button>
-                        <span className="w-8 text-center">{item.quantity}</span>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() =>
-                            updateQuantity(index, item.quantity + 1)
-                          }
-                        >
-                          +
-                        </Button>
+                  <div key={index} className="p-3 border rounded-lg space-y-3">
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <p className="font-medium">{item.productName}</p>
+                        {item.addons.length > 0 && (
+                          <p className="text-sm text-muted-foreground">
+                            +{" "}
+                            {item.addons.map((addon) => addon.name).join(", ")}
+                          </p>
+                        )}
                       </div>
-                      <p className="font-medium mt-1">{item.productName}</p>
-                      {item.addons.length > 0 && (
-                        <p className="text-sm text-muted-foreground">
-                          + {item.addons.map((addon) => addon.name).join(", ")}
-                        </p>
-                      )}
-                    </div>
-                    <div className="text-right">
-                      <p className="font-bold">
-                        ₱
-                        {(
-                          (item.unitPrice +
+                      <div className="text-right">
+                        <p className="font-bold">
+                          ₱
+                          {(
+                            item.unitPrice +
                             item.addons.reduce(
                               (sum, addon) => sum + addon.price,
                               0
-                            )) *
-                          item.quantity
-                        ).toLocaleString()}
-                      </p>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => removeFromCart(index)}
-                        className="text-red-600 hover:text-red-600/80"
+                            )
+                          ).toLocaleString()}
+                        </p>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeFromCart(index)}
+                          className="text-red-600 hover:text-red-600/80"
+                        >
+                          Remove
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Label
+                        htmlFor={`drink-name-${index}`}
+                        className="text-sm w-20"
                       >
-                        Remove
-                      </Button>
+                        Name:
+                      </Label>
+                      <Input
+                        id={`drink-name-${index}`}
+                        value={item.drinkName || ""}
+                        onChange={(e) => updateDrinkName(index, e.target.value)}
+                        placeholder="e.g., John"
+                        className="flex-1"
+                      />
                     </div>
                   </div>
                 ))}

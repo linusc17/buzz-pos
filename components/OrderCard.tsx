@@ -84,6 +84,11 @@ export default function OrderCard({ order, onStatusUpdate }: OrderCardProps) {
               <div>
                 <span className="font-medium">
                   {item.quantity}x {item.productName}
+                  {item.drinkName && (
+                    <span className="text-buzz-orange ml-1">
+                      ({item.drinkName})
+                    </span>
+                  )}
                 </span>
                 {item.addons.length > 0 && (
                   <div className="text-xs text-muted-foreground ml-2">

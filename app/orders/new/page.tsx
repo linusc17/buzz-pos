@@ -58,15 +58,10 @@ export default function NewOrderPage() {
     setCart((prevCart) => prevCart.filter((_, i) => i !== index));
   };
 
-  const updateQuantity = (index: number, newQuantity: number) => {
-    if (newQuantity <= 0) {
-      removeFromCart(index);
-      return;
-    }
-
+  const updateDrinkName = (index: number, name: string) => {
     setCart((prevCart) => {
       const updatedCart = [...prevCart];
-      updatedCart[index].quantity = newQuantity;
+      updatedCart[index].drinkName = name.trim() || undefined;
       return updatedCart;
     });
   };
@@ -169,62 +164,57 @@ export default function NewOrderPage() {
                     {cart.map((item, index) => (
                       <div
                         key={index}
-                        className="flex justify-between items-start p-3 border rounded-lg"
+                        className="p-3 border rounded-lg space-y-3"
                       >
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() =>
-                                updateQuantity(index, item.quantity - 1)
-                              }
-                            >
-                              -
-                            </Button>
-                            <span className="w-8 text-center">
-                              {item.quantity}
-                            </span>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() =>
-                                updateQuantity(index, item.quantity + 1)
-                              }
-                            >
-                              +
-                            </Button>
+                        <div className="flex justify-between items-start">
+                          <div className="flex-1">
+                            <p className="font-medium">{item.productName}</p>
+                            {item.addons.length > 0 && (
+                              <p className="text-sm text-muted-foreground">
+                                +{" "}
+                                {item.addons
+                                  .map((addon) => addon.name)
+                                  .join(", ")}
+                              </p>
+                            )}
                           </div>
-                          <p className="font-medium mt-1">{item.productName}</p>
-                          {item.addons.length > 0 && (
-                            <p className="text-sm text-muted-foreground">
-                              +{" "}
-                              {item.addons
-                                .map((addon) => addon.name)
-                                .join(", ")}
-                            </p>
-                          )}
-                        </div>
-                        <div className="text-right">
-                          <p className="font-bold">
-                            ₱
-                            {(
-                              (item.unitPrice +
+                          <div className="text-right">
+                            <p className="font-bold">
+                              ₱
+                              {(
+                                item.unitPrice +
                                 item.addons.reduce(
                                   (sum, addon) => sum + addon.price,
                                   0
-                                )) *
-                              item.quantity
-                            ).toLocaleString()}
-                          </p>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => removeFromCart(index)}
-                            className="text-buzz-burgundy hover:text-buzz-burgundy/80"
+                                )
+                              ).toLocaleString()}
+                            </p>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => removeFromCart(index)}
+                              className="text-buzz-burgundy hover:text-buzz-burgundy/80"
+                            >
+                              Remove
+                            </Button>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Label
+                            htmlFor={`staff-drink-name-${index}`}
+                            className="text-sm w-20"
                           >
-                            Remove
-                          </Button>
+                            Name:
+                          </Label>
+                          <Input
+                            id={`staff-drink-name-${index}`}
+                            value={item.drinkName || ""}
+                            onChange={(e) =>
+                              updateDrinkName(index, e.target.value)
+                            }
+                            placeholder="e.g., John"
+                            className="flex-1"
+                          />
                         </div>
                       </div>
                     ))}

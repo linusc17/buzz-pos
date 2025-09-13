@@ -135,7 +135,14 @@ export default function OrderTracker({ order }: OrderTrackerProps) {
                 return (
                   <TableRow key={index}>
                     <TableCell>
-                      <div className="font-medium">{item.productName}</div>
+                      <div className="font-medium">
+                        {item.productName}
+                        {item.drinkName && (
+                          <span className="text-buzz-orange ml-2">
+                            ({item.drinkName})
+                          </span>
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell>₱{item.unitPrice.toLocaleString()}</TableCell>
                     <TableCell>

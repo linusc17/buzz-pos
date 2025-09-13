@@ -6,6 +6,8 @@ import { db } from "@/lib/firebase";
 import { Product, Addon, OrderItem } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -22,6 +24,7 @@ export default function ProductSelector({ onAddToCart }: ProductSelectorProps) {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [selectedAddons, setSelectedAddons] = useState<Addon[]>([]);
   const [quantity, setQuantity] = useState(1);
+  const [drinkNames, setDrinkNames] = useState<string[]>([""]);
 
   useEffect(() => {
     fetchProducts();
@@ -67,23 +70,25 @@ export default function ProductSelector({ onAddToCart }: ProductSelectorProps) {
   const handleAddToCart = () => {
     if (!selectedProduct) return;
 
-    const item = {
-      productId: selectedProduct.id,
-      productName: selectedProduct.name,
-      quantity: quantity,
-      unitPrice: selectedProduct.basePrice,
-      addons: selectedAddons.map((addon) => ({
-        name: addon.name,
-        price: addon.price,
-      })),
-    };
+    for (let i = 0; i < quantity; i++) {
+      const item = {
+        productId: selectedProduct.id,
+        productName: selectedProduct.name,
+        quantity: 1,
+        unitPrice: selectedProduct.basePrice,
+        addons: selectedAddons.map((addon) => ({
+          name: addon.name,
+          price: addon.price,
+        })),
+        drinkName: drinkNames[i]?.trim() || undefined,
+      };
+      onAddToCart(item);
+    }
 
-    onAddToCart(item);
-
-    // Reset selection
     setSelectedProduct(null);
     setSelectedAddons([]);
     setQuantity(1);
+    setDrinkNames([""]);
   };
 
   const toggleAddon = (addon: Addon) => {
@@ -229,7 +234,11 @@ export default function ProductSelector({ onAddToCart }: ProductSelectorProps) {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                    onClick={() => {
+                      const newQty = Math.max(1, quantity - 1);
+                      setQuantity(newQty);
+                      setDrinkNames((prev) => prev.slice(0, newQty));
+                    }}
                   >
                     -
                   </Button>
@@ -237,12 +246,43 @@ export default function ProductSelector({ onAddToCart }: ProductSelectorProps) {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setQuantity(quantity + 1)}
+                    onClick={() => {
+                      const newQty = quantity + 1;
+                      setQuantity(newQty);
+                      setDrinkNames((prev) => [...prev, ""]);
+                    }}
                   >
                     +
                   </Button>
                 </div>
               </div>
+
+              {quantity > 0 && (
+                <div className="space-y-3">
+                  <span className="text-foreground font-medium">
+                    Drink Names (Optional):
+                  </span>
+                  <div className="space-y-3 pt-2">
+                    {Array.from({ length: quantity }, (_, index) => (
+                      <div key={index} className="flex items-center gap-2">
+                        <Label className="text-sm w-16">
+                          Drink {index + 1}:
+                        </Label>
+                        <Input
+                          value={drinkNames[index] || ""}
+                          onChange={(e) => {
+                            const newNames = [...drinkNames];
+                            newNames[index] = e.target.value;
+                            setDrinkNames(newNames);
+                          }}
+                          placeholder="e.g., John, Mary"
+                          className="flex-1"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               <div className="border-t border-border pt-4">
                 <div className="flex justify-between items-center mb-4">

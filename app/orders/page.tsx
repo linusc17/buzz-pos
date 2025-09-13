@@ -412,6 +412,11 @@ function OrdersContent() {
                                 className="text-xs text-muted-foreground"
                               >
                                 {item.quantity}x {item.productName}
+                                {item.drinkName && (
+                                  <span className="text-buzz-orange ml-1">
+                                    ({item.drinkName})
+                                  </span>
+                                )}
                                 {item.addons.length > 0 && (
                                   <span className="ml-1">
                                     (+
@@ -744,6 +749,11 @@ function ViewOrderModal({
                           <div>
                             <div className="font-medium">
                               {item.productName}
+                              {item.drinkName && (
+                                <span className="text-buzz-orange ml-2">
+                                  ({item.drinkName})
+                                </span>
+                              )}
                             </div>
                           </div>
                         </TableCell>
@@ -887,13 +897,13 @@ function EditOrderModal({
     return calculateSubtotal() + deliveryFee;
   };
 
-  const updateItemQuantity = (index: number, quantity: number) => {
-    if (quantity <= 0) {
-      removeItem(index);
-      return;
-    }
+  const updateItemDrinkName = (index: number, drinkName: string) => {
     setItems((prev) =>
-      prev.map((item, i) => (i === index ? { ...item, quantity } : item))
+      prev.map((item, i) =>
+        i === index
+          ? { ...item, drinkName: drinkName.trim() || undefined }
+          : item
+      )
     );
   };
 
@@ -938,6 +948,7 @@ function EditOrderModal({
         quantity: 1,
         unitPrice: firstProduct.basePrice,
         addons: [],
+        drinkName: undefined,
       },
     ]);
   };
@@ -954,7 +965,8 @@ function EditOrderModal({
               productId: product.id,
               productName: product.name,
               unitPrice: product.basePrice,
-              addons: [], // Reset addons when changing product
+              addons: [],
+              drinkName: item.drinkName,
             }
           : item
       )
@@ -1116,34 +1128,19 @@ function EditOrderModal({
                           </Select>
                         </div>
 
-                        {/* Quantity */}
+                        {/* Drink Name */}
                         <div>
                           <Label className="text-sm font-medium">
-                            Quantity
+                            Drink Name (Optional)
                           </Label>
-                          <div className="flex items-center gap-2 mt-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() =>
-                                updateItemQuantity(index, item.quantity - 1)
-                              }
-                            >
-                              -
-                            </Button>
-                            <span className="w-8 text-center font-medium">
-                              {item.quantity}
-                            </span>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() =>
-                                updateItemQuantity(index, item.quantity + 1)
-                              }
-                            >
-                              +
-                            </Button>
-                          </div>
+                          <Input
+                            value={item.drinkName || ""}
+                            onChange={(e) =>
+                              updateItemDrinkName(index, e.target.value)
+                            }
+                            placeholder="e.g., John"
+                            className="mt-2"
+                          />
                         </div>
 
                         {/* Add-ons */}
@@ -1178,21 +1175,18 @@ function EditOrderModal({
 
                         {/* Price & Remove */}
                         <div className="text-right">
-                          <Label className="text-sm font-medium">
-                            Subtotal
-                          </Label>
+                          <Label className="text-sm font-medium">Price</Label>
                           <div className="font-bold text-lg mt-2">
                             ₱
                             {(
-                              (item.unitPrice +
-                                item.addons.reduce(
-                                  (
-                                    sum: number,
-                                    addon: { name: string; price: number }
-                                  ) => sum + addon.price,
-                                  0
-                                )) *
-                              item.quantity
+                              item.unitPrice +
+                              item.addons.reduce(
+                                (
+                                  sum: number,
+                                  addon: { name: string; price: number }
+                                ) => sum + addon.price,
+                                0
+                              )
                             ).toLocaleString()}
                           </div>
                           <Button
