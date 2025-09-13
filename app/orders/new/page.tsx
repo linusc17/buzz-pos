@@ -37,21 +37,7 @@ export default function NewOrderPage() {
   }, [router]);
 
   const addToCart = (item: OrderItem) => {
-    setCart((prevCart) => {
-      const existingItemIndex = prevCart.findIndex(
-        (cartItem) =>
-          cartItem.productId === item.productId &&
-          JSON.stringify(cartItem.addons) === JSON.stringify(item.addons)
-      );
-
-      if (existingItemIndex > -1) {
-        const updatedCart = [...prevCart];
-        updatedCart[existingItemIndex].quantity += item.quantity;
-        return updatedCart;
-      } else {
-        return [...prevCart, item];
-      }
-    });
+    setCart((prevCart) => [...prevCart, item]);
   };
 
   const removeFromCart = (index: number) => {
@@ -61,7 +47,12 @@ export default function NewOrderPage() {
   const updateDrinkName = (index: number, name: string) => {
     setCart((prevCart) => {
       const updatedCart = [...prevCart];
-      updatedCart[index].drinkName = name.trim() || undefined;
+      const trimmedName = name.trim();
+      if (trimmedName) {
+        updatedCart[index].drinkName = trimmedName;
+      } else {
+        delete updatedCart[index].drinkName;
+      }
       return updatedCart;
     });
   };
@@ -164,7 +155,7 @@ export default function NewOrderPage() {
                     {cart.map((item, index) => (
                       <div
                         key={index}
-                        className="p-3 border rounded-lg space-y-3"
+                        className="p-4 border rounded-lg space-y-4"
                       >
                         <div className="flex justify-between items-start">
                           <div className="flex-1">
@@ -235,7 +226,7 @@ export default function NewOrderPage() {
               <CardHeader>
                 <CardTitle>Customer Details</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-6">
                 <div className="space-y-2">
                   <Label htmlFor="customerName">Customer Name *</Label>
                   <Input

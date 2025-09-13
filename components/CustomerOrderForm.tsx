@@ -99,9 +99,8 @@ export default function CustomerOrderForm({
   const addToCart = () => {
     if (!selectedProduct) return;
 
-    const newItems: OrderItem[] = [];
     for (let i = 0; i < quantity; i++) {
-      const item: OrderItem = {
+      const item: Partial<OrderItem> = {
         productId: selectedProduct.id,
         productName: selectedProduct.name,
         quantity: 1,
@@ -110,18 +109,25 @@ export default function CustomerOrderForm({
           name: addon.name,
           price: addon.price,
         })),
-        drinkName: drinkNames[i]?.trim() || undefined,
       };
-      newItems.push(item);
-    }
 
-    setCart((prevCart) => [...prevCart, ...newItems]);
+      const drinkName = drinkNames[i]?.trim();
+      if (drinkName) {
+        item.drinkName = drinkName;
+      }
+
+      addItemToCart(item as OrderItem);
+    }
 
     setSelectedProduct(null);
     setSelectedAddons([]);
     setQuantity(1);
     setDrinkNames([""]);
     toast.success("Added to cart!");
+  };
+
+  const addItemToCart = (item: OrderItem) => {
+    setCart((prevCart) => [...prevCart, item]);
   };
 
   const removeFromCart = (index: number) => {
@@ -132,7 +138,12 @@ export default function CustomerOrderForm({
   const updateDrinkName = (index: number, name: string) => {
     setCart((prevCart) => {
       const updatedCart = [...prevCart];
-      updatedCart[index].drinkName = name.trim() || undefined;
+      const trimmedName = name.trim();
+      if (trimmedName) {
+        updatedCart[index].drinkName = trimmedName;
+      } else {
+        delete updatedCart[index].drinkName;
+      }
       return updatedCart;
     });
   };
@@ -412,16 +423,16 @@ export default function CustomerOrderForm({
                 </div>
 
                 {quantity > 0 && (
-                  <div className="space-y-3">
+                  <div className="space-y-4">
                     <span className="text-foreground font-medium">
                       Drink Names (Optional):
                     </span>
-                    <div className="space-y-3 pt-2">
+                    <div className="space-y-3 pt-1">
                       {Array.from({ length: quantity }, (_, index) => (
                         <div key={index} className="flex items-center gap-2">
-                          <span className="text-sm text-muted-foreground w-16">
+                          <Label className="text-sm w-16">
                             Drink {index + 1}:
-                          </span>
+                          </Label>
                           <Input
                             value={drinkNames[index] || ""}
                             onChange={(e) => {
@@ -472,7 +483,7 @@ export default function CustomerOrderForm({
             ) : (
               <div className="space-y-4">
                 {cart.map((item, index) => (
-                  <div key={index} className="p-3 border rounded-lg space-y-3">
+                  <div key={index} className="p-4 border rounded-lg space-y-4">
                     <div className="flex justify-between items-start">
                       <div className="flex-1">
                         <p className="font-medium">{item.productName}</p>
@@ -540,7 +551,7 @@ export default function CustomerOrderForm({
           <CardHeader>
             <CardTitle>Your Details</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-6">
             <div className="space-y-2">
               <Label htmlFor="customerName">Full Name *</Label>
               <Input

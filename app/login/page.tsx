@@ -100,7 +100,7 @@ export default function LoginPage() {
             <CardDescription>Admin Login</CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleLogin} className="space-y-4">
+            <form onSubmit={handleLogin} className="space-y-6">
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <Input
@@ -109,7 +109,7 @@ export default function LoginPage() {
                   value={email}
                   onChange={(e) => {
                     setEmail(e.target.value);
-                    if (error) setError(""); // Clear error when user types
+                    if (error) setError("");
                   }}
                   placeholder="Enter your email"
                   className={
@@ -127,8 +127,9 @@ export default function LoginPage() {
                   value={password}
                   onChange={(e) => {
                     setPassword(e.target.value);
-                    if (error) setError(""); // Clear error when user types
+                    if (error) setError("");
                   }}
+                  placeholder="Enter your password"
                   className={
                     error ? "border-red-500 focus-visible:ring-red-500" : ""
                   }

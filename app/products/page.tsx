@@ -223,7 +223,7 @@ export default function ProductsPage() {
                     {products.map((product) => (
                       <div
                         key={product.id}
-                        className="p-4 border border-border rounded-lg"
+                        className="p-6 border border-border rounded-lg"
                       >
                         <div className="flex justify-between items-start">
                           <div className="flex-1">
@@ -320,7 +320,7 @@ export default function ProductsPage() {
                     {addons.map((addon) => (
                       <div
                         key={addon.id}
-                        className="p-4 border border-border rounded-lg"
+                        className="p-6 border border-border rounded-lg"
                       >
                         <div className="flex justify-between items-start">
                           <div className="flex-1">
@@ -431,7 +431,7 @@ function ProductForm({
           <CardTitle>{product ? "Edit Product" : "Add New Product"}</CardTitle>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
               <Label htmlFor="name">Product Name *</Label>
               <Input
@@ -556,7 +556,7 @@ function AddonForm({
           <CardTitle>{addon ? "Edit Add-on" : "Add New Add-on"}</CardTitle>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
               <Label htmlFor="name">Add-on Name *</Label>
               <Input

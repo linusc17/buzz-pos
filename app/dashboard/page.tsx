@@ -232,7 +232,7 @@ function DashboardContent() {
                 {recentOrders.map((order) => (
                   <div
                     key={order.id}
-                    className="flex items-center justify-between p-4 border border-border rounded-lg bg-card/50 hover:bg-card/70 transition-colors"
+                    className="flex items-center justify-between p-6 border border-border rounded-lg bg-card/50 hover:bg-card/70 transition-colors"
                   >
                     <div className="flex-1">
                       <div className="flex items-center gap-4">

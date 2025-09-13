@@ -78,7 +78,7 @@ export default function OrderTracker({ order }: OrderTrackerProps) {
           <CardHeader>
             <CardTitle>Customer Information</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-6">
             <div className="flex items-center space-x-3">
               <User className="h-4 w-4 text-muted-foreground" />
               <span className="font-medium">{order.customerName}</span>

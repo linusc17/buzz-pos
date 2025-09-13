@@ -71,7 +71,7 @@ export default function ProductSelector({ onAddToCart }: ProductSelectorProps) {
     if (!selectedProduct) return;
 
     for (let i = 0; i < quantity; i++) {
-      const item = {
+      const item: Partial<OrderItem> = {
         productId: selectedProduct.id,
         productName: selectedProduct.name,
         quantity: 1,
@@ -80,9 +80,14 @@ export default function ProductSelector({ onAddToCart }: ProductSelectorProps) {
           name: addon.name,
           price: addon.price,
         })),
-        drinkName: drinkNames[i]?.trim() || undefined,
       };
-      onAddToCart(item);
+
+      const drinkName = drinkNames[i]?.trim();
+      if (drinkName) {
+        item.drinkName = drinkName;
+      }
+
+      onAddToCart(item as OrderItem);
     }
 
     setSelectedProduct(null);
@@ -159,7 +164,7 @@ export default function ProductSelector({ onAddToCart }: ProductSelectorProps) {
                         key={product.id}
                         className={`p-3 border rounded-lg cursor-pointer transition-colors ${
                           selectedProduct?.id === product.id
-                            ? "border-blue-500 bg-blue-50 dark:bg-blue-950"
+                            ? "border-buzz-orange bg-buzz-cream/20 dark:bg-buzz-brown/20"
                             : "border-border hover:border-muted-foreground"
                         }`}
                         onClick={() => setSelectedProduct(product)}
@@ -199,7 +204,7 @@ export default function ProductSelector({ onAddToCart }: ProductSelectorProps) {
                   key={addon.id}
                   className={`p-3 border rounded-lg cursor-pointer transition-colors ${
                     selectedAddons.find((a) => a.id === addon.id)
-                      ? "border-green-500 bg-green-50 dark:bg-green-950"
+                      ? "border-buzz-gold bg-buzz-cream/20 dark:bg-buzz-brown/20"
                       : "border-border hover:border-muted-foreground"
                   }`}
                   onClick={() => toggleAddon(addon)}
@@ -258,11 +263,11 @@ export default function ProductSelector({ onAddToCart }: ProductSelectorProps) {
               </div>
 
               {quantity > 0 && (
-                <div className="space-y-3">
+                <div className="space-y-4">
                   <span className="text-foreground font-medium">
                     Drink Names (Optional):
                   </span>
-                  <div className="space-y-3 pt-2">
+                  <div className="space-y-3 pt-1">
                     {Array.from({ length: quantity }, (_, index) => (
                       <div key={index} className="flex items-center gap-2">
                         <Label className="text-sm w-16">

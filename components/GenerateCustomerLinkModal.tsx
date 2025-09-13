@@ -100,7 +100,7 @@ export default function GenerateCustomerLinkModal({
         </DialogHeader>
 
         {!generatedLink ? (
-          <div className="space-y-4">
+          <div className="space-y-6">
             <div className="space-y-2">
               <Label htmlFor="customerName">Customer Name (Optional)</Label>
               <Input
@@ -159,7 +159,7 @@ export default function GenerateCustomerLinkModal({
             </div>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-6">
             <Card>
               <CardContent>
                 <div className="space-y-4">

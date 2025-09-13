@@ -13,7 +13,7 @@ import {
   Timestamp,
 } from "firebase/firestore";
 import { getFirebaseDb } from "@/lib/firebase-client";
-import { Order, Product, Addon } from "@/types";
+import { Order, Product, Addon, OrderItem } from "@/types";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import MainNavigation from "@/components/MainNavigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -899,11 +899,19 @@ function EditOrderModal({
 
   const updateItemDrinkName = (index: number, drinkName: string) => {
     setItems((prev) =>
-      prev.map((item, i) =>
-        i === index
-          ? { ...item, drinkName: drinkName.trim() || undefined }
-          : item
-      )
+      prev.map((item, i) => {
+        if (i === index) {
+          const updatedItem = { ...item };
+          const trimmedName = drinkName.trim();
+          if (trimmedName) {
+            updatedItem.drinkName = trimmedName;
+          } else {
+            delete updatedItem.drinkName;
+          }
+          return updatedItem;
+        }
+        return item;
+      })
     );
   };
 
@@ -948,7 +956,6 @@ function EditOrderModal({
         quantity: 1,
         unitPrice: firstProduct.basePrice,
         addons: [],
-        drinkName: undefined,
       },
     ]);
   };
@@ -958,18 +965,24 @@ function EditOrderModal({
     if (!product) return;
 
     setItems((prev) =>
-      prev.map((item, i) =>
-        i === index
-          ? {
-              ...item,
-              productId: product.id,
-              productName: product.name,
-              unitPrice: product.basePrice,
-              addons: [],
-              drinkName: item.drinkName,
-            }
-          : item
-      )
+      prev.map((item, i) => {
+        if (i === index) {
+          const updatedItem: Partial<OrderItem> = {
+            productId: product.id,
+            productName: product.name,
+            unitPrice: product.basePrice,
+            quantity: item.quantity,
+            addons: [],
+          };
+
+          if (item.drinkName) {
+            updatedItem.drinkName = item.drinkName;
+          }
+
+          return updatedItem as OrderItem;
+        }
+        return item;
+      })
     );
   };
 
@@ -1104,8 +1117,8 @@ function EditOrderModal({
               ) : (
                 <div className="space-y-4">
                   {items.map((item, index) => (
-                    <Card key={index} className="p-4">
-                      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 items-start">
+                    <Card key={index} className="p-6">
+                      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
                         {/* Product Selection */}
                         <div>
                           <Label className="text-sm font-medium">Product</Label>
