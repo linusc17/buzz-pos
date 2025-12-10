@@ -1,6 +1,6 @@
 "use client";
 
-import { Order } from "@/types";
+import { Order, UPSIZE_PRICE } from "@/types";
 import { getEstimatedDeliveryMessage } from "@/lib/order-tracking";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -26,7 +26,8 @@ export default function OrderTracker({ order }: OrderTrackerProps) {
         (sum, addon) => sum + addon.price,
         0
       );
-      return total + (item.unitPrice + addonTotal) * item.quantity;
+      const sizePrice = (item.size || "regular") === "large" ? UPSIZE_PRICE : 0;
+      return total + (item.unitPrice + sizePrice + addonTotal) * item.quantity;
     }, 0);
   };
 
@@ -129,22 +130,33 @@ export default function OrderTracker({ order }: OrderTrackerProps) {
                   (sum, addon) => sum + addon.price,
                   0
                 );
+                const sizePrice = (item.size || "regular") === "large" ? UPSIZE_PRICE : 0;
                 const itemSubtotal =
-                  (item.unitPrice + addonTotal) * item.quantity;
+                  (item.unitPrice + sizePrice + addonTotal) * item.quantity;
 
                 return (
                   <TableRow key={index}>
                     <TableCell>
                       <div className="font-medium">
                         {item.productName}
+                        <span className="ml-2 text-sm text-muted-foreground capitalize">
+                          ({item.size || "regular"})
+                        </span>
                         {item.drinkName && (
                           <span className="text-buzz-orange ml-2">
-                            ({item.drinkName})
+                            - {item.drinkName}
                           </span>
                         )}
                       </div>
                     </TableCell>
-                    <TableCell>₱{item.unitPrice.toLocaleString()}</TableCell>
+                    <TableCell>
+                      ₱{item.unitPrice.toLocaleString()}
+                      {sizePrice > 0 && (
+                        <span className="text-sm text-muted-foreground ml-1">
+                          (+₱{sizePrice})
+                        </span>
+                      )}
+                    </TableCell>
                     <TableCell>
                       {item.addons.length > 0 ? (
                         <div className="space-y-1">

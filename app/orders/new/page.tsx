@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { collection, addDoc, Timestamp } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
-import { OrderItem } from "@/types";
+import { OrderItem, UPSIZE_PRICE } from "@/types";
 import ProductSelector from "@/components/ProductSelector";
 import MainNavigation from "@/components/MainNavigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -63,7 +63,8 @@ export default function NewOrderPage() {
         (sum, addon) => sum + addon.price,
         0
       );
-      return total + (item.unitPrice + addonTotal) * item.quantity;
+      const sizePrice = (item.size || "regular") === "large" ? UPSIZE_PRICE : 0;
+      return total + (item.unitPrice + sizePrice + addonTotal) * item.quantity;
     }, 0);
   };
 
@@ -159,7 +160,12 @@ export default function NewOrderPage() {
                       >
                         <div className="flex justify-between items-start">
                           <div className="flex-1">
-                            <p className="font-medium">{item.productName}</p>
+                            <p className="font-medium">
+                              {item.productName}
+                              <span className="ml-2 text-sm text-muted-foreground capitalize">
+                                ({item.size || "regular"})
+                              </span>
+                            </p>
                             {item.addons.length > 0 && (
                               <p className="text-sm text-muted-foreground">
                                 +{" "}
@@ -174,6 +180,7 @@ export default function NewOrderPage() {
                               ₱
                               {(
                                 item.unitPrice +
+                                ((item.size || "regular") === "large" ? UPSIZE_PRICE : 0) +
                                 item.addons.reduce(
                                   (sum, addon) => sum + addon.price,
                                   0

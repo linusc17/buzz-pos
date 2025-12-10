@@ -12,7 +12,7 @@ import {
 import { getFirebaseDb } from "@/lib/firebase-client";
 import { markTokenAsUsed } from "@/lib/customer-tokens";
 import { formatTrackingUrl } from "@/lib/order-tracking";
-import { Product, Addon, OrderItem, CustomerToken } from "@/types";
+import { Product, Addon, OrderItem, CustomerToken, DrinkSize, UPSIZE_PRICE } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -37,6 +37,7 @@ export default function CustomerOrderForm({
   const [cart, setCart] = useState<OrderItem[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [selectedAddons, setSelectedAddons] = useState<Addon[]>([]);
+  const [selectedSize, setSelectedSize] = useState<DrinkSize>("regular");
   const [quantity, setQuantity] = useState(1);
   const [drinkNames, setDrinkNames] = useState<string[]>([""]);
 
@@ -105,6 +106,7 @@ export default function CustomerOrderForm({
         productName: selectedProduct.name,
         quantity: 1,
         unitPrice: selectedProduct.basePrice,
+        size: selectedSize,
         addons: selectedAddons.map((addon) => ({
           name: addon.name,
           price: addon.price,
@@ -121,6 +123,7 @@ export default function CustomerOrderForm({
 
     setSelectedProduct(null);
     setSelectedAddons([]);
+    setSelectedSize("regular");
     setQuantity(1);
     setDrinkNames([""]);
     toast.success("Added to cart!");
@@ -154,7 +157,8 @@ export default function CustomerOrderForm({
         (sum, addon) => sum + addon.price,
         0
       );
-      return total + (item.unitPrice + addonTotal) * item.quantity;
+      const sizePrice = (item.size || "regular") === "large" ? UPSIZE_PRICE : 0;
+      return total + (item.unitPrice + sizePrice + addonTotal) * item.quantity;
     }, 0);
   };
 
@@ -164,7 +168,8 @@ export default function CustomerOrderForm({
       (sum, addon) => sum + addon.price,
       0
     );
-    return (selectedProduct.basePrice + addonTotal) * quantity;
+    const sizePrice = selectedSize === "large" ? UPSIZE_PRICE : 0;
+    return (selectedProduct.basePrice + sizePrice + addonTotal) * quantity;
   };
 
   const toggleAddon = (addon: Addon) => {
@@ -355,6 +360,32 @@ export default function CustomerOrderForm({
         {selectedProduct && (
           <Card>
             <CardHeader>
+              <CardTitle>Size</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex gap-3">
+                <Button
+                  variant={selectedSize === "regular" ? "default" : "outline"}
+                  className="flex-1"
+                  onClick={() => setSelectedSize("regular")}
+                >
+                  Regular
+                </Button>
+                <Button
+                  variant={selectedSize === "large" ? "default" : "outline"}
+                  className="flex-1"
+                  onClick={() => setSelectedSize("large")}
+                >
+                  Large (+₱{UPSIZE_PRICE})
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {selectedProduct && (
+          <Card>
+            <CardHeader>
               <CardTitle>Add-ons (Optional)</CardTitle>
             </CardHeader>
             <CardContent>
@@ -486,7 +517,12 @@ export default function CustomerOrderForm({
                   <div key={index} className="p-4 border rounded-lg space-y-4">
                     <div className="flex justify-between items-start">
                       <div className="flex-1">
-                        <p className="font-medium">{item.productName}</p>
+                        <p className="font-medium">
+                          {item.productName}
+                          <span className="ml-2 text-sm text-muted-foreground capitalize">
+                            ({item.size || "regular"})
+                          </span>
+                        </p>
                         {item.addons.length > 0 && (
                           <p className="text-sm text-muted-foreground">
                             +{" "}
@@ -499,6 +535,7 @@ export default function CustomerOrderForm({
                           ₱
                           {(
                             item.unitPrice +
+                            ((item.size || "regular") === "large" ? UPSIZE_PRICE : 0) +
                             item.addons.reduce(
                               (sum, addon) => sum + addon.price,
                               0

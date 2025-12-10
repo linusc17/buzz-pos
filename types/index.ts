@@ -1,5 +1,9 @@
 import { Timestamp } from "firebase/firestore";
 
+export type DrinkSize = "regular" | "large";
+
+export const UPSIZE_PRICE = 15;
+
 export interface Product {
   id: string;
   name: string;
@@ -24,6 +28,7 @@ export interface OrderItem {
   productName: string;
   quantity: number;
   unitPrice: number;
+  size: DrinkSize;
   addons: {
     name: string;
     price: number;

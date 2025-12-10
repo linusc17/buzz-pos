@@ -1,6 +1,6 @@
 "use client";
 
-import { Order } from "@/types";
+import { Order, UPSIZE_PRICE } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -76,34 +76,39 @@ export default function OrderCard({ order, onStatusUpdate }: OrderCardProps) {
 
       <CardContent>
         <div className="space-y-2 mb-4">
-          {order.items.map((item, index) => (
-            <div
-              key={index}
-              className="flex justify-between items-center text-sm"
-            >
-              <div>
-                <span className="font-medium">
-                  {item.quantity}x {item.productName}
-                  {item.drinkName && (
-                    <span className="text-buzz-orange ml-1">
-                      ({item.drinkName})
+          {order.items.map((item, index) => {
+            const sizePrice = (item.size || "regular") === "large" ? UPSIZE_PRICE : 0;
+            const itemTotal =
+              (item.unitPrice + sizePrice) * item.quantity +
+              item.addons.reduce((sum, addon) => sum + addon.price, 0) * item.quantity;
+
+            return (
+              <div
+                key={index}
+                className="flex justify-between items-center text-sm"
+              >
+                <div>
+                  <span className="font-medium">
+                    {item.quantity}x {item.productName}
+                    <span className="text-muted-foreground capitalize ml-1">
+                      ({item.size || "regular"})
                     </span>
+                    {item.drinkName && (
+                      <span className="text-buzz-orange ml-1">
+                        - {item.drinkName}
+                      </span>
+                    )}
+                  </span>
+                  {item.addons.length > 0 && (
+                    <div className="text-xs text-muted-foreground ml-2">
+                      + {item.addons.map((addon) => addon.name).join(", ")}
+                    </div>
                   )}
-                </span>
-                {item.addons.length > 0 && (
-                  <div className="text-xs text-muted-foreground ml-2">
-                    + {item.addons.map((addon) => addon.name).join(", ")}
-                  </div>
-                )}
+                </div>
+                <span>₱{itemTotal}</span>
               </div>
-              <span>
-                ₱
-                {item.unitPrice * item.quantity +
-                  item.addons.reduce((sum, addon) => sum + addon.price, 0) *
-                    item.quantity}
-              </span>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         {order.notes && (

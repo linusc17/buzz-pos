@@ -13,7 +13,7 @@ import {
   Timestamp,
 } from "firebase/firestore";
 import { getFirebaseDb } from "@/lib/firebase-client";
-import { Order, Product, Addon, OrderItem } from "@/types";
+import { Order, Product, Addon, OrderItem, UPSIZE_PRICE, DrinkSize } from "@/types";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import MainNavigation from "@/components/MainNavigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -412,9 +412,12 @@ function OrdersContent() {
                                 className="text-xs text-muted-foreground"
                               >
                                 {item.quantity}x {item.productName}
+                                <span className="capitalize ml-1">
+                                  ({item.size || "regular"})
+                                </span>
                                 {item.drinkName && (
                                   <span className="text-buzz-orange ml-1">
-                                    ({item.drinkName})
+                                    - {item.drinkName}
                                   </span>
                                 )}
                                 {item.addons.length > 0 && (
@@ -621,7 +624,8 @@ function ViewOrderModal({
         (sum, addon) => sum + addon.price,
         0
       );
-      return total + (item.unitPrice + addonTotal) * item.quantity;
+      const sizePrice = (item.size || "regular") === "large" ? UPSIZE_PRICE : 0;
+      return total + (item.unitPrice + sizePrice + addonTotal) * item.quantity;
     }, 0);
   const deliveryFee = order.deliveryFee || 0;
   const totalAmount = subtotal + deliveryFee;
@@ -740,8 +744,9 @@ function ViewOrderModal({
                       (sum, addon) => sum + addon.price,
                       0
                     );
+                    const sizePrice = (item.size || "regular") === "large" ? UPSIZE_PRICE : 0;
                     const itemSubtotal =
-                      (item.unitPrice + addonTotal) * item.quantity;
+                      (item.unitPrice + sizePrice + addonTotal) * item.quantity;
 
                     return (
                       <TableRow key={index}>
@@ -749,9 +754,12 @@ function ViewOrderModal({
                           <div>
                             <div className="font-medium">
                               {item.productName}
+                              <span className="ml-2 text-sm text-muted-foreground capitalize">
+                                ({item.size || "regular"})
+                              </span>
                               {item.drinkName && (
                                 <span className="text-buzz-orange ml-2">
-                                  ({item.drinkName})
+                                  - {item.drinkName}
                                 </span>
                               )}
                             </div>
@@ -760,6 +768,11 @@ function ViewOrderModal({
                         <TableCell>
                           <div className="font-medium">
                             ₱{item.unitPrice.toLocaleString()}
+                            {sizePrice > 0 && (
+                              <span className="text-sm text-muted-foreground ml-1">
+                                (+₱{sizePrice} upsize)
+                              </span>
+                            )}
                           </div>
                         </TableCell>
                         <TableCell>
@@ -889,7 +902,8 @@ function EditOrderModal({
           sum + addon.price,
         0
       );
-      return total + (item.unitPrice + addonTotal) * item.quantity;
+      const sizePrice = (item.size || "regular") === "large" ? UPSIZE_PRICE : 0;
+      return total + (item.unitPrice + sizePrice + addonTotal) * item.quantity;
     }, 0);
   };
 
@@ -955,6 +969,7 @@ function EditOrderModal({
         productName: firstProduct.name,
         quantity: 1,
         unitPrice: firstProduct.basePrice,
+        size: "regular" as DrinkSize,
         addons: [],
       },
     ]);
@@ -972,6 +987,7 @@ function EditOrderModal({
             productName: product.name,
             unitPrice: product.basePrice,
             quantity: item.quantity,
+            size: item.size || "regular",
             addons: [],
           };
 
@@ -980,6 +996,17 @@ function EditOrderModal({
           }
 
           return updatedItem as OrderItem;
+        }
+        return item;
+      })
+    );
+  };
+
+  const updateItemSize = (index: number, size: DrinkSize) => {
+    setItems((prev) =>
+      prev.map((item, i) => {
+        if (i === index) {
+          return { ...item, size };
         }
         return item;
       })
@@ -1118,7 +1145,7 @@ function EditOrderModal({
                 <div className="space-y-4">
                   {items.map((item, index) => (
                     <Card key={index} className="p-6">
-                      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
+                      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 items-start">
                         {/* Product Selection */}
                         <div>
                           <Label className="text-sm font-medium">Product</Label>
@@ -1137,6 +1164,25 @@ function EditOrderModal({
                                   {product.name} - ₱{product.basePrice}
                                 </SelectItem>
                               ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        {/* Size Selection */}
+                        <div>
+                          <Label className="text-sm font-medium">Size</Label>
+                          <Select
+                            value={item.size || "regular"}
+                            onValueChange={(size) =>
+                              updateItemSize(index, size as DrinkSize)
+                            }
+                          >
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="regular">Regular</SelectItem>
+                              <SelectItem value="large">Large (+₱{UPSIZE_PRICE})</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
@@ -1193,6 +1239,7 @@ function EditOrderModal({
                             ₱
                             {(
                               item.unitPrice +
+                              ((item.size || "regular") === "large" ? UPSIZE_PRICE : 0) +
                               item.addons.reduce(
                                 (
                                   sum: number,

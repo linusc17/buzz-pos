@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { Product, Addon, OrderItem } from "@/types";
+import { Product, Addon, OrderItem, DrinkSize, UPSIZE_PRICE } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,6 +23,7 @@ export default function ProductSelector({ onAddToCart }: ProductSelectorProps) {
   const [loading, setLoading] = useState(true);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [selectedAddons, setSelectedAddons] = useState<Addon[]>([]);
+  const [selectedSize, setSelectedSize] = useState<DrinkSize>("regular");
   const [quantity, setQuantity] = useState(1);
   const [drinkNames, setDrinkNames] = useState<string[]>([""]);
 
@@ -76,6 +77,7 @@ export default function ProductSelector({ onAddToCart }: ProductSelectorProps) {
         productName: selectedProduct.name,
         quantity: 1,
         unitPrice: selectedProduct.basePrice,
+        size: selectedSize,
         addons: selectedAddons.map((addon) => ({
           name: addon.name,
           price: addon.price,
@@ -92,6 +94,7 @@ export default function ProductSelector({ onAddToCart }: ProductSelectorProps) {
 
     setSelectedProduct(null);
     setSelectedAddons([]);
+    setSelectedSize("regular");
     setQuantity(1);
     setDrinkNames([""]);
   };
@@ -110,7 +113,8 @@ export default function ProductSelector({ onAddToCart }: ProductSelectorProps) {
       (sum, addon) => sum + addon.price,
       0
     );
-    return (selectedProduct.basePrice + addonTotal) * quantity;
+    const sizePrice = selectedSize === "large" ? UPSIZE_PRICE : 0;
+    return (selectedProduct.basePrice + sizePrice + addonTotal) * quantity;
   };
 
   return (
@@ -191,6 +195,32 @@ export default function ProductSelector({ onAddToCart }: ProductSelectorProps) {
           )}
         </CardContent>
       </Card>
+
+      {selectedProduct && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Size</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex gap-3">
+              <Button
+                variant={selectedSize === "regular" ? "default" : "outline"}
+                className={`flex-1 ${selectedSize === "regular" ? "" : ""}`}
+                onClick={() => setSelectedSize("regular")}
+              >
+                Regular
+              </Button>
+              <Button
+                variant={selectedSize === "large" ? "default" : "outline"}
+                className={`flex-1 ${selectedSize === "large" ? "" : ""}`}
+                onClick={() => setSelectedSize("large")}
+              >
+                Large (+₱{UPSIZE_PRICE})
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {selectedProduct && (
         <Card>
